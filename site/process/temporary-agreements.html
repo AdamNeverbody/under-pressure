@@ -1,0 +1,1914 @@
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Temporary agreements</title>
+<!-- On its own: the play page as made in the Accounts of two chat (play/temporary-agreements.html), with B612 and the clip encoder
+     from files kept beside it. Its rule is its own; engine/check/play.js ties it to the large Process piece (ProcessField in
+     engine/process.js). Made by play/make-site.js --alone. -->
+<meta name="description" content="Thousands of dots, each with a colour of its own, drawn toward one another unevenly and pressing apart. The shapes form by themselves, and none of them lasts.">
+<link href="../fonts/b612.css" rel="stylesheet">
+<style>
+/* One screen: the moving picture edge to edge, a title card that fades, controls in a bar along the bottom. The piece's own palette: night ground, amber, pale and blue. */
+:root { --bg: #EDF1EF; --a: #8A5200; --b: #18324F; --c: #5A77A6; --ink: #18324F; --line: #9FB0BB; --focus: #0B62D6;
+  --display: "B612", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #081626; --a: #F4B942; --b: #CDE4F6; --c: #5F93D0; --ink: #E8F0F7; --line: #3F5C7A; --focus: #9CC7FF; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #081626; --a: #F4B942; --b: #CDE4F6; --c: #5F93D0; --ink: #E8F0F7; --line: #3F5C7A; --focus: #9CC7FF; color-scheme: dark; }
+html, body { height: 100%; margin: 0; background: var(--bg); overflow: hidden; }
+canvas { position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#hint {
+  position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); top: calc(28px + env(safe-area-inset-top, 0px)); margin: 0; max-width: 46rem;
+  font: 0.9rem/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
+  opacity: 0.85; transition: opacity 1.2s; pointer-events: none; text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+}
+#hint.gone { opacity: 0; }
+/* status marks at the edges: the cycle along the top, the sound along the bottom, and what is switched on at the top right */
+#cycle { position: fixed; left: 0; right: 0; top: 0; height: 3px; background: var(--line); opacity: 0.85; pointer-events: none; }
+#cycle i { position: absolute; top: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--a); transform: translateX(-50%); box-sizing: border-box; transition: left 0.4s linear; }
+#cycle.held i { background: var(--bg); border: 2px solid var(--a); }
+#cycle span { position: absolute; top: 8px; font: 0.72rem system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); opacity: 0.6; }
+#cycle .l { left: 8px; }
+#cycle .r { right: 8px; }
+#edge-bottom { position: fixed; left: 0; right: 0; bottom: 0; height: 3px; background: var(--a); opacity: 0; pointer-events: none; }
+#edge-bottom.on { opacity: 0.4; }
+#edge-bottom.beat { animation: beat var(--beat, 0.5s) linear infinite; }
+@keyframes beat { 0% { opacity: 0.9; } 55% { opacity: 0.18; } 100% { opacity: 0.18; } }
+#tags { position: fixed; right: 12px; top: calc(28px + env(safe-area-inset-top, 0px)); margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; pointer-events: none; }
+#tags li { font: 0.74rem/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); padding: 0.1rem 0.5rem; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--bg); background: color-mix(in srgb, var(--bg) 70%, transparent); opacity: 0.8; }
+body.nomarks #cycle, body.nomarks #edge-bottom, body.nomarks #tags { display: none; }
+@media (prefers-reduced-motion: reduce) { #edge-bottom.beat { animation: none; opacity: 0.4; } #cycle i { transition: none; } }
+#bar { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; gap: 8px; pointer-events: none; }
+#bar button { pointer-events: auto; }
+#bar button {
+  min-height: 40px; padding: 0.35rem 0.8rem;
+  font: 0.86rem system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); cursor: pointer;
+  background: var(--bg); background: color-mix(in srgb, var(--bg) 85%, transparent); border: 1px solid var(--line); border-radius: 6px;
+}
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+#sound {
+  position: fixed; right: 16px; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box;
+  width: min(23rem, calc(100vw - 32px)); max-height: calc(100vh - 130px); overflow: auto; padding: 0.7rem 0.95rem;
+  font: 0.86rem/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
+  background: var(--bg); background: color-mix(in srgb, var(--bg) 92%, transparent); border: 1px solid var(--line); border-radius: 8px;
+}
+#sound[hidden] { display: none; }
+#sound h2 { margin: 0 0 0.4rem; font-size: 0.95rem; }
+#sound .f { display: grid; grid-template-columns: 6.4rem 1fr 5.6rem; align-items: center; gap: 0.5rem; min-height: 34px; }
+#sound .f output { text-align: right; font-variant-numeric: tabular-nums; }
+#sound .c { display: flex; align-items: center; gap: 0.5rem; min-height: 34px; }
+#sound input[type="range"] { width: 100%; accent-color: var(--a); }
+#sound input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--a); }
+#sound select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 0.2rem 0.3rem; grid-column: 2 / 4; }
+#sound p { margin: 0.4rem 0 0; opacity: 0.8; }
+#legend {
+  position: fixed; left: 16px; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box;
+  max-width: min(47rem, calc(100vw - 32px)); max-height: calc(100vh - 130px); overflow: auto; padding: 0.7rem 0.95rem;
+  font: 0.86rem/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
+  background: var(--bg); background: color-mix(in srgb, var(--bg) 92%, transparent); border: 1px solid var(--line); border-radius: 8px;
+}
+#legend[hidden] { display: none; }
+#legend .rows { margin: 0; padding: 0; list-style: none; columns: 2 19rem; column-gap: 1.2rem; }
+#legend .rows > li { break-inside: avoid; margin: 0 0 3px; }
+#legend .row { display: grid; grid-template-columns: 7.4rem 1fr auto; gap: 0.5rem; align-items: center; width: 100%; min-height: 40px; box-sizing: border-box; padding: 0.25rem 0.45rem;
+  font: inherit; color: inherit; text-align: left; background: none; border: 1px solid transparent; border-radius: 6px; }
+#legend button.row { cursor: pointer; border-color: var(--line); }
+#legend button.row[aria-pressed="true"] { border-color: var(--a); box-shadow: inset 4px 0 0 var(--a); }
+#legend .k { font-weight: 600; }
+#legend .v { font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+#legend .two { white-space: nowrap; }
+#legend .two button { font: inherit; min-height: 36px; padding: 0.15rem 0.6rem; margin-left: 4px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); cursor: pointer; }
+#legend button:focus-visible { outline: 3px solid var(--focus, #0B62D6); outline-offset: 1px; }
+@media (pointer: coarse) { #legend .row { min-height: 46px; } #legend .two button { min-height: 44px; min-width: 44px; } }
+#legend .row { row-gap: 0.15rem; }
+#legend li.row .two { grid-column: 1 / -1; justify-self: end; }      /* two buttons go on a line of their own, so the words keep their width */
+#legend button.row .v { grid-column: 2; justify-self: start; }       /* and a row's current setting goes under its words, for the same reason */
+@supports (height: 100dvh) { #legend, #sound { max-height: calc(100dvh - 130px); } }      /* the height a phone's browser really shows, with its bars up */
+@media (max-width: 640px) {
+  #legend .row { grid-template-columns: 5.4rem 1fr auto; }
+  #legend, #sound { max-height: calc(100vh - 176px); }               /* leaves the message line its room above them */
+  @supports (height: 100dvh) { #legend, #sound { max-height: calc(100dvh - 176px); } }
+  #still, #rec, #snd { display: none; }
+  #rec[aria-pressed="true"] { display: inline-block; }
+}
+#legend, #bar button, #sound { touch-action: manipulation; }
+#card { position: fixed; left: 50%; top: 44%; transform: translate(-50%, -50%); box-sizing: border-box; width: min(35rem, calc(100vw - 40px)); margin: 0; text-align: center;
+  color: var(--ink); pointer-events: none; opacity: 1; transition: opacity 1.8s ease; padding: 1.5rem 1.6rem 1.35rem; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg); background: color-mix(in srgb, var(--bg) 84%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+#card.gone { opacity: 0; }
+#card h1 { margin: 0 0 0.8rem; font: 700 clamp(2rem, 7vw, 3.4rem)/1.08 var(--display); letter-spacing: 0.01em; text-wrap: balance; }
+#card .what { margin: 0 auto 1rem; max-width: 31rem; font: 1rem/1.55 var(--ui); text-wrap: pretty; }
+#card .his { margin: 0; font: italic 0.98rem/1.45 var(--display); color: var(--a); }
+#card .his span { display: block; margin-top: 0.25rem; font: 0.8rem/1.4 var(--ui); font-style: normal; color: var(--ink); opacity: 0.75; letter-spacing: 0.02em; }
+@media (prefers-reduced-motion: reduce) { #card { transition: none; } }
+#bar button[aria-pressed="true"] { border-color: var(--a); box-shadow: inset 0 -3px 0 var(--a); }
+#bar .slide { pointer-events: auto; display: inline-flex; align-items: center; gap: 0.5rem; min-height: 40px; box-sizing: border-box; padding: 0.2rem 0.7rem; font: 0.86rem system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
+  background: var(--bg); background: color-mix(in srgb, var(--bg) 85%, transparent); border: 1px solid var(--a); border-radius: 6px; touch-action: manipulation; }
+#bar .slide b { display: inline-block; min-width: 2.7rem; font-variant-numeric: tabular-nums; }
+#bar .slide input { width: 9.5rem; accent-color: var(--a); }
+#bar select { pointer-events: auto; min-height: 40px; padding: 0.35rem 0.6rem; font: 0.86rem system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); cursor: pointer;
+  background: var(--bg); background: color-mix(in srgb, var(--bg) 85%, transparent); border: 1px solid var(--a); border-radius: 6px; touch-action: manipulation; }
+#legend .about { margin: 0 0 0.6rem; max-width: 44rem; opacity: 0.9; }
+#legend .rows h3 { margin: 0.85rem 0 0.3rem 0.45rem; font: 700 0.74rem/1.2 var(--ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--a); }
+#legend .rows > li:first-child h3 { margin-top: 0.15rem; }
+#legend .rows .note { margin: 0 0.45rem 0.4rem; font-size: 0.8rem; line-height: 1.4; opacity: 0.85; }
+#legend .d b { font-weight: 700; }
+#legend .d i { font-style: normal; font-weight: 600; }
+#legend div.row .two { grid-column: 1 / -1; justify-self: end; }      /* a group's first row, when it is not a button, sits in a div under the heading */
+#legend .row, #legend button.row { grid-template-columns: 3.4rem 1fr auto; align-items: start; }      /* a narrow key column, so the words have the width; the key level with the name */
+#legend li.row .k, #legend div.row .k { grid-column: 1 / -1; }      /* a row that is not one key (touch, 1 to 5, scroll...) says how on a line of its own */
+#legend li.row .d, #legend div.row .d { grid-column: 2 / -1; }
+#legend .k kbd { display: inline-block; margin-top: 0.05rem; }
+#legend .tabs { display: none; }
+@media (max-width: 640px), (max-height: 500px) {      /* a phone, held either way: a sheet along the bottom, one part at a time */
+  #legend { left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); max-width: none; padding-top: 0; border-radius: 14px; }
+  #legend .tabs { display: flex; gap: 6px; overflow-x: auto; position: sticky; top: 0; z-index: 1; margin: 0 -0.95rem 0.6rem; padding: 0.6rem 0.95rem 0.55rem;
+    background: var(--bg); border-bottom: 1px solid var(--line); scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  #legend .tabs::-webkit-scrollbar { display: none; }
+  #legend.short .tabs { position: static; }      /* a sheet too short for its tabs and a row: the tabs scroll away with the rows, so the rows keep the room */
+  #legend .tabs button { flex: none; min-height: 40px; padding: 0.3rem 0.85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--ink); font: 600 0.86rem var(--ui); cursor: pointer; }
+  #legend .tabs button[aria-pressed="true"] { background: var(--a); border-color: var(--a); color: var(--bg); }
+  #legend .rows { columns: 1; }
+  #legend [data-g]:not(.on) { display: none; }
+  #legend .rows h3 { display: none; }      /* the tab names the part */
+  #legend .rows .note { margin-top: 0.1rem; }
+}
+@media (hover: none) and (pointer: coarse) {      /* a touch screen: each row is pressed, so the keyboard's keys are not shown */
+  #legend button.row { grid-template-columns: 1fr auto; }
+  #legend button.row .k { display: none; }
+  #legend button.row .d, #legend button.row .v { grid-column: 1; }
+  #legend li.row .k:not(.keep), #legend div.row .k:not(.keep) { display: none; }
+  #legend li.row .d, #legend div.row .d { grid-column: 1 / -1; }
+  #legend .mouse { display: none; }
+}
+#legend button.row .v::before { content: "Now: "; font-weight: 400; opacity: 0.8; }      /* a row's current setting, said as such */
+kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid var(--line); border-radius: 4px; padding: 0 0.35em; }
+@media (prefers-reduced-motion: reduce) { #hint { transition: none; } }
+</style>
+<canvas id="v" role="img" aria-label="Thousands of coloured dots moving under one another’s influence, gathering into clumps that meet, merge and scatter again. Nothing in it comes to rest."></canvas>
+<div id="card" role="note">
+  <h1>Temporary agreements</h1>
+  <p class="what">Thousands of dots, each with a colour of its own, no two alike. Each is drawn toward others, but not evenly, and presses away from any that come too close. Nothing in the rules says what shapes to make: the shapes you see form by themselves, and none of them lasts.</p>
+  <p class="his">“A temporary arrangement that held before collapsing.”<span>Adam, on watching it</span></p>
+</div>
+<p id="hint" aria-live="polite"></p>
+<div id="cycle" aria-hidden="true"><span class="l">streaming</span><span class="r">gathering</span><i id="cyc"></i></div>
+<div id="edge-bottom" aria-hidden="true"></div>
+<ul id="tags" aria-label="Options in effect"></ul>
+<div id="legend" role="region" aria-label="Legend and controls. Each row can be pressed, and does what its key does." hidden>
+  <div class="tabs" role="group" aria-label="Parts of the legend"><button type="button" data-tab="about" aria-pressed="false">About</button><button type="button" data-tab="touch" aria-pressed="false">Touch</button><button type="button" data-tab="bubbles" aria-pressed="false">Bubbles</button><button type="button" data-tab="time" aria-pressed="false">Time</button><button type="button" data-tab="dots" aria-pressed="false">Dots</button><button type="button" data-tab="drift" aria-pressed="false">Drift</button><button type="button" data-tab="ground" aria-pressed="false">Ground</button><button type="button" data-tab="looking" aria-pressed="false">Looking</button><button type="button" data-tab="sound" aria-pressed="false">Sound</button><button type="button" data-tab="saving" aria-pressed="false">Saving</button></div>
+  <p class="about" data-g="about">Each dot is a position with a character of its own, shown by its colour, and no two are alike. Each is drawn toward others, but not evenly: one can be drawn toward another that isn’t drawn back. Any two that come too close press apart. Nothing in the rules says what shapes to make. Every shape you see forms by itself, and none of them lasts. Press any row below, or its key, to try it.</p>
+  <ul class="rows">
+    <li data-g="touch"><h3>Touch</h3><div class="row"><span class="k keep">Touch<span class="mouse">, or hold the left button</span></span><span class="d"><b>Press away.</b> The dots near that spot are pressed away from it.</span></div></li>
+    <li class="row mouse" data-g="touch"><span class="k">Hold the right button</span><span class="d"><b>Draw in.</b> The dots near that spot are drawn in toward it.</span></li>
+    <li data-g="touch"><button type="button" class="row" data-k="a" data-s="drawin" aria-pressed="false"><span class="k"><kbd>A</kbd></span><span class="d"><b>Swap to draw in.</b> A touch<span class="mouse">, or the left button,</span> draws the dots in instead of pressing them away. Press again to swap back. The Draw in button does the same.</span></button></li>
+    <li data-g="bubbles"><h3>Bubbles</h3><button type="button" class="row" data-k="6" data-s="bubbles" aria-pressed="false"><span class="k"><kbd>6</kbd></span><span class="d"><b>Bubbles.</b> With this on, a touch drops a bubble, and a touch on a bubble, or close to a small one, pops it; Pop all pops every one. A bubble keeps a share of dots inside it: the number written on it. With too many, it presses some out; with too few, it draws more in. Its inner and outer parts each keep half the share, and the dashes on their rings turn as fast as the dots there go round. Its rings take the colour of the dots it holds, and on Shifted by motion the part of a ring coming toward the middle of the screen turns bluer and the part going away turns redder, as the ring turns and the bubble drifts. It moves with the dots it holds, and bubbles that bump ease apart. Eight drops at most (a shape counts as one): the next pops the oldest. The Bubbles button and the menus beside it do the same.</span></button></li>
+    <li data-g="bubbles"><button type="button" class="row" data-k="7" data-s="v:bubk"><span class="k"><kbd>7</kbd></span><span class="d"><b>Share.</b> How full the next bubble tries to be, compared with how many dots the same space holds on average. 1/3 means a third as many, 3/1 three times as many, and 3/3 just as many. Slide it anywhere from 1/89, nearly empty, to 89/1, which draws in all it can; the 7 key jumps between the shares used most. Some are one share written two ways, like 1/9 and 9/81. Bubbles already there keep their own.</span><span class="v"></span></button></li>
+    <li data-g="bubbles"><button type="button" class="row" data-k="9" data-s="v:shape"><span class="k"><kbd>9</kbd></span><span class="d"><b>Shape.</b> What a touch lays down.<br><i>Round:</i> one bubble.<br><i>Shaped:</i> little bubbles set out by the share’s two numbers, the first along the way the dots are moving and the second across, so 9/1 is a line of nine, 3/3 a square of nine and 3/2 a block of six. A share with a number over 9 drops one round bubble.<br><i>Stacked:</i> rows of 4, 3 and 2, standing on the bottom row.<br><i>Angled:</i> a corner with two arms of four (Angle sets how wide it opens).<br>Each little bubble holds the share, goes round, and pops or breaks on its own. With Set ways chosen under Circuits, neighbours are set going round opposite ways, like gears.</span><span class="v"></span></button></li>
+    <li data-g="bubbles"><button type="button" class="row" data-k="0" data-s="v:angle"><span class="k"><kbd>0</kbd></span><span class="d"><b>Angle.</b> How wide an angled shape’s two arms open: 60, 90, 120 or 150 degrees.</span><span class="v"></span></button></li>
+    <li data-g="bubbles"><button type="button" class="row" data-k="/" data-s="v:circ"><span class="k"><kbd>/</kbd></span><span class="d"><b>Circuits.</b> How a bubble goes round, and how it ends. Each choice is for the bubbles you drop next.<br><i>Held, fracturing</i> (the first choice): a bubble has no way round of its own. It goes the way its dots are going round together, the parallel they hold between them, and any dot that strays is nudged back toward it. When their straying outweighs what they share, it breaks into three smaller bubbles, each with a third of its room, which keep its share and go on round together; they can break again the same way. Each time, its number is written in finer terms: 1/2 becomes 3/6, then 9/18. Its ring stays behind as a faint shadow round its pieces, and each later break leaves smaller rings inside it, so a family shows what it was; each generation of rings is a step further round the colour ring, amber, then pale, then blue. It pops only when the pieces would be too small to hold eight dots, or there would be too many bubbles at once.<br><i>Held parallel:</i> the same, but it pops instead of breaking.<br><i>Set ways:</i> a bubble is given a way round when it is dropped, from how the dots there were turning. Its inner part goes the other way, and the pieces of a shape are set going opposite ways to their neighbours, like gears. It pops when either part is going round more against its way than with it.</span><span class="v"></span></button></li>
+    <li data-g="bubbles"><button type="button" class="row" data-k="Delete"><span class="k"><kbd>Delete</kbd></span><span class="d"><b>Pop all.</b> Pop every bubble at once. To pop just one, touch it while Bubbles is on. The Pop all button does the same.</span></button></li>
+    <li data-g="time"><h3>Time</h3><button type="button" class="row" data-k=" " data-s="paused" aria-pressed="false"><span class="k"><kbd>Space</kbd></span><span class="d"><b>Pause.</b> Stop everything, or start it again.</span></button></li>
+    <li data-g="time"><button type="button" class="row" data-k="ArrowRight"><span class="k"><kbd>→</kbd></span><span class="d"><b>Step.</b> While paused, move it on by a moment.</span></button></li>
+    <li data-g="time"><button type="button" class="row" data-k="s" data-s="slow" aria-pressed="false"><span class="k"><kbd>S</kbd></span><span class="d"><b>Slow.</b> A quarter of the speed, or back to full speed.</span></button></li>
+    <li data-g="dots"><h3>The dots</h3><div class="row"><span class="k"><kbd>1</kbd> to <kbd>5</kbd></span><span class="d"><b>How many.</b> 4,000, 9,000, 16,000, 24,000 or 32,000 dots. If the picture can’t keep up, it thins the crowd by itself. Now: <span class="v" data-s="v:n"></span></span><span class="two"><button type="button" data-k="fewer">Fewer</button><button type="button" data-k="more">More</button></span></div></li>
+    <li class="row" data-g="dots"><span class="k">Scroll, or <kbd>,</kbd> and <kbd>.</kbd></span><span class="d"><b>Room.</b> How much space each dot keeps around itself before it presses others away, in five steps: a quarter, half, as it began, twice and four times. Less room packs the clumps into tight knots; more spreads the dots out until the clumps fade. It takes a few seconds to show. Now: <span class="v" data-s="v:room"></span></span><span class="two"><button type="button" data-k=",">Less</button><button type="button" data-k=".">More</button></span></li>
+    <li data-g="dots"><button type="button" class="row" data-k="c" data-s="v:kind"><span class="k"><kbd>C</kbd></span><span class="d"><b>Kin.</b> Which colours count as alike, as Colours shows them on Amber, pale and blue. The colours run round a ring, from amber to pale to blue and back to amber.<br><i>Ones and twos</i> (the first choice): a dot’s own colour, and, more at some times than others, the colour straight across the ring.<br><i>Threes added:</i> colours a third of the way round the ring count too.<br><i>Threes mostly:</i> kin by thirds does most of the drawing.</span><span class="v"></span></button></li>
+    <li data-g="dots"><button type="button" class="row" data-k="j" data-s="v:avg"><span class="k"><kbd>J</kbd></span><span class="d"><b>The patch each reads.</b> Each dot is drawn by the dots in a patch round it, taken as an average. <i>Square</i>, as the piece began, can leave a fine grid where dots press away from their own kind. <i>Smoothed</i> is a rounder patch, and leaves no grid.</span><span class="v"></span></button></li>
+    <li data-g="drift"><h3>The drift</h3><p class="note">Who is drawn to whom changes slowly: this is the drift. For a while each dot is drawn toward dots like itself, and they gather into clumps. Then each is drawn after dots unlike itself, and they stream. The line along the top shows where it is, from streaming at the left to gathering at the right.</p><button type="button" class="row" data-k="d" data-s="held" aria-pressed="false"><span class="k"><kbd>D</kbd></span><span class="d"><b>Hold the drift.</b> Stop it where it is, so the dots go on being drawn the way they are now. Press again to let it go on. While it is held, the dot on the top line is hollow.</span></button></li>
+    <li data-g="drift"><button type="button" class="row" data-k="w" data-s="v:drift"><span class="k"><kbd>W</kbd></span><span class="d"><b>Cycle or wander.</b> <i>On its cycle</i>, the drift swings between streaming and gathering about every three minutes. <i>Wandering</i>, it moves by chance instead, over the same range at about the same pace, and never comes round the same way twice.</span><span class="v"></span></button></li>
+    <li class="row" data-g="drift"><span class="k"><kbd>[</kbd> and <kbd>]</kbd></span><span class="d"><b>Through the cycle.</b> Jump back or forward along the drift, about twenty seconds at a time.</span><span class="two"><button type="button" data-k="[">Back</button><button type="button" data-k="]">Forward</button></span></li>
+    <li data-g="ground"><h3>The ground</h3><p class="note">The ground is what the dots move over. It can remember where they have been.</p><button type="button" class="row" data-k="g" data-s="v:mem"><span class="k"><kbd>G</kbd></span><span class="d"><b>Ground memory.</b> How long the ground remembers where dots have been: not at all (the first choice), or fading over about 2, 4, 15 or 45 seconds. With a memory, each dot is drawn by where the others have been lately, not only by where they are now.</span><span class="v"></span></button></li>
+    <li data-g="ground"><button type="button" class="row" data-k="y" data-s="wear" aria-pressed="false"><span class="k"><kbd>Y</kbd></span><span class="d"><b>Show the ground.</b> Shade the ground where dots crowd. With a memory, it shows where they have crowded lately.</span></button></li>
+    <li data-g="ground"><button type="button" class="row" data-k="u" data-s="land" aria-pressed="false"><span class="k"><kbd>U</kbd></span><span class="d"><b>The ground for one dot.</b> Ring one dot and colour the ground for it: amber where it is drawn, blue where it is turned away. The first time, it is the dot nearest where you last pointed or touched.</span></button></li>
+    <li data-g="ground"><button type="button" class="row" data-k="q"><span class="k"><kbd>Q</kbd></span><span class="d"><b>Another colour.</b> The same ground, for a dot about a third of the way round the ring of colours. The ring moves to it.</span></button></li>
+    <li data-g="ground"><button type="button" class="row" data-k="e"><span class="k"><kbd>E</kbd></span><span class="d"><b>The opposite colour.</b> The same ground, for a dot straight across the ring of colours. The ring moves to it.</span></button></li>
+    <li data-g="looking"><h3>Looking</h3><button type="button" class="row" data-k="v" data-s="follow" aria-pressed="false"><span class="k"><kbd>V</kbd></span><span class="d"><b>Ride along.</b> Watch from the dot nearest where you last pointed or touched: it stays still, and everything else moves round it. Press again to come back.</span></button></li>
+    <li data-g="looking"><button type="button" class="row" data-k="z" data-s="zoom" aria-pressed="false"><span class="k"><kbd>Z</kbd></span><span class="d"><b>Zoom.</b> Zoom in three times where you last pointed or touched, or back out.</span></button></li>
+    <li data-g="looking"><button type="button" class="row" data-k="x" data-s="v:light"><span class="k"><kbd>X</kbd></span><span class="d"><b>Colours.</b> <i>Shifted by motion</i> (the first choice): each dot in a rainbow colour of its own, bluer while it comes toward the middle of the screen, or toward the dot you ride along with, and redder while it goes away. <i>Amber, pale and blue:</i> each dot in the colour of its own character, with no shift. <i>Visible light:</i> the rainbow colours, with no shift. Bubbles take the colour of the dots they hold (on Amber, pale and blue, paler when those dots are mixed), and on Shifted by motion each part of a ring shifts the same way, as it turns and drifts.</span><span class="v"></span></button></li>
+    <li data-g="looking"><button type="button" class="row" data-k="8" data-s="kal" aria-pressed="false"><span class="k"><kbd>8</kbd></span><span class="d"><b>Kaleidoscope.</b> One twelfth of the picture, turned and mirrored six times round. Most of what you see then isn’t where anything really is.</span></button></li>
+    <li data-g="looking"><button type="button" class="row" data-k="l" data-s="v:theme"><span class="k"><kbd>L</kbd></span><span class="d"><b>Light or dark.</b> Light on a dark ground, or ink on paper.</span><span class="v"></span></button></li>
+    <li data-g="looking"><button type="button" class="row" data-k="b" data-s="v:faint"><span class="k"><kbd>B</kbd></span><span class="d"><b>Fainter.</b> Draw the dots fainter, so the crowded middles of clumps keep their colour.</span><span class="v"></span></button></li>
+    <li data-g="looking"><button type="button" class="row" data-k="t" data-s="long" aria-pressed="false"><span class="k"><kbd>T</kbd></span><span class="d"><b>Trails.</b> Longer or shorter trails behind the dots.</span></button></li>
+    <li data-g="sound"><h3>Sound</h3><p class="note">With sound on, each bubble sounds its share against a soft hum that stands for the whole. A share is a ratio, and so is a musical interval, so 2/1 sounds an octave above the whole, 3/2 a fifth above and 1/2 an octave below. A bubble is in tune while it holds its share and slides out of tune when it is too full or too empty. It wavers as its dots stray from going round together, swells once each time round, splits into three voices when it breaks, and plucks when it pops. With bloops, bells or plucked strings it sounds as it goes round instead of holding its note. Shares below 1/7 and above 18/1 would be too low or too high to hear well, so they are moved by whole octaves until they can be.</p><button type="button" class="row" data-k="m" data-s="sound" aria-pressed="false"><span class="k"><kbd>M</kbd></span><span class="d"><b>Sound.</b> On or off. Besides the bubbles, each clump of dots sounds a note of its colour, more quietly while there are bubbles, and the rush of air is the streaming between them.</span></button></li>
+    <li data-g="sound"><button type="button" class="row" data-k="o" data-s="panel" aria-pressed="false"><span class="k"><kbd>O</kbd></span><span class="d"><b>Sound options.</b> Open or close the panel: sound on or off, the bubbles’ voice, the clumps’ voice (organ, tuned air or quiet), echo and loudness.</span></button></li>
+    <li data-g="sound"><button type="button" class="row" data-k="n" data-s="v:voice"><span class="k"><kbd>N</kbd></span><span class="d"><b>Bubble voice.</b> Step through eleven. Reed, kazoo, harmonica, tuning fork, jaw harp, glass, bowed strings and a choir hold their notes. The tuning fork is struck again each time round, and the jaw harp is twanged twice each time round, with a wah that follows its turning. Bloops, bells and plucked strings sound as each bubble goes round. Each keeps the bubble’s share as its pitch.</span><span class="v"></span></button></li>
+    <li class="row" data-g="sound"><span class="k"><kbd>-</kbd> and <kbd>=</kbd></span><span class="d"><b>Volume.</b> Quieter or louder.</span><span class="two"><button type="button" data-k="-">Quieter</button><button type="button" data-k="=">Louder</button></span></li>
+    <li data-g="saving"><h3>Saving and the screen</h3><button type="button" class="row" data-k="p"><span class="k"><kbd>P</kbd></span><span class="d"><b>Picture.</b> Save a still picture of the screen.</span></button></li>
+    <li data-g="saving"><button type="button" class="row" data-k="r" data-s="rec" aria-pressed="false"><span class="k"><kbd>R</kbd></span><span class="d"><b>Clip.</b> Record a video clip, and press again to stop. It stops by itself after a minute and a half.</span></button></li>
+    <li data-g="saving"><button type="button" class="row" data-k="i" data-s="marks" aria-pressed="false"><span class="k"><kbd>I</kbd></span><span class="d"><b>Status marks.</b> Show or hide the marks at the edges: the drift line along the top, the labels at the top right saying what is switched on, and the sound line along the bottom.</span></button></li>
+    <li data-g="saving"><button type="button" class="row" data-k="f" data-s="full" aria-pressed="false"><span class="k"><kbd>F</kbd></span><span class="d"><b>Full screen.</b> Where the browser allows it.</span></button></li>
+    <li data-g="saving"><button type="button" class="row" data-k="h"><span class="k"><kbd>H</kbd></span><span class="d"><b>Hide the legend.</b></span></button></li>
+  </ul>
+</div>
+<div id="sound" role="region" aria-label="Sound options" hidden>
+  <h2>Sound options</h2>
+  <div class="c"><input type="checkbox" id="o-on"><label for="o-on">Sound on</label></div>
+  <div class="c"><input type="checkbox" id="o-whole" checked><label for="o-whole">A soft hum for the whole, under the bubbles</label></div>
+  <div class="f"><label for="o-bvox">Bubbles</label><select id="o-bvox"><option value="0">Reed</option><option value="1">Kazoo</option><option value="2">Harmonica</option><option value="3">Tuning fork</option><option value="4">Bloopy</option><option value="5">Jaw harp</option><option value="6">Glass</option><option value="7">Strings</option><option value="8">Choir</option><option value="9">Bells</option><option value="10">Plucked strings</option></select></div>
+  <div class="f"><label for="o-kind">Clumps</label><select id="o-kind"><option value="0">Organ</option><option value="1">Tuned air</option><option value="2">Quiet</option></select></div>
+  <div class="f"><label for="o-echo">Echo</label><input type="range" id="o-echo" min="0" max="100" step="1" value="50"><output id="o-echo-out" for="o-echo"></output></div>
+  <div class="f"><label for="o-level">Loudness</label><input type="range" id="o-level" min="3" max="60" step="1" value="22"><output id="o-level-out" for="o-level"></output></div>
+  <p>Each bubble sounds its share against a soft hum for the whole: 2/1 an octave above it, 3/2 a fifth, 1/2 an octave below. It is in tune while it holds its share, wavers as its dots stray, and plucks when it pops. Bloops, bells and plucked strings sound as a bubble goes round. Each clump sounds a note of its colour.</p>
+</div>
+<div id="bar">
+  <button type="button" id="keys" aria-expanded="false" aria-controls="legend">Show the legend</button>
+  <button type="button" id="drawb" aria-pressed="false">Draw in</button>
+  <button type="button" id="soundb" aria-pressed="false">Sound</button>
+  <button type="button" id="bubb" aria-pressed="false">Bubbles</button>
+  <select id="bshape" aria-label="The shape a touch lays down" hidden><option value="0" selected>round</option><option value="1">shaped</option><option value="2">stacked</option><option value="3">angled</option></select>
+  <select id="bangle" aria-label="The angle between an angled shape's two arms" hidden><option value="0">at 60°</option><option value="1" selected>at 90°</option><option value="2">at 120°</option><option value="3">at 150°</option></select>
+  <span id="bubkw" class="slide" hidden><label for="bubk">holding <b id="bubkv">1/3</b></label><input type="range" id="bubk" min="0" max="192" step="1" value="87" aria-label="How full a bubble tries to be, from 1/89 to 89/1, compared with how many dots the same space holds on average" aria-valuetext="1/3"></span>
+  <select id="bcirc" aria-label="How a bubble goes round, and how it ends" hidden><option value="2" selected>held, fracturing</option><option value="0">held parallel</option><option value="1">set ways</option></select>
+  <button type="button" id="popall" hidden>Pop all</button>
+  <button type="button" id="snd" aria-expanded="false" aria-controls="sound">Sound options</button>
+  <button type="button" id="still">Save a picture</button>
+  <button type="button" id="rec" aria-pressed="false">Record a clip</button>
+</div>
+<script src="../vendor/mp4-muxer.js"></script>
+<script>
+(function () {
+  'use strict';
+  /* The process, for many thousands, with pressing apart at every scale and no seams. Each position presses into shared fields, and each is moved by what the others have pressed there. */
+  function mulberry(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  /* The drift, two ways. On its cycle it follows slow waves. Wandering, nothing times it: at each moment it is nudged by chance and eased back
+     toward its middle, so it keeps the range and the pace of the waves, and never comes round again the same way. */
+  function wave1(t) { return 1.25 + 0.95 * Math.sin(t * 0.047) + 0.35 * Math.sin(t * 0.019 + 1.3); }
+  function chance() { return Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(6.283185307 * Math.random()); }
+  function drift1(F) { var a = wave1(F.tc); return F.mix > 0 ? a + F.mix * (1.25 + F.wx - a) : a; }
+  function wave2(t) { return 2.2 + 1.3 * Math.sin(t * 0.031 + 0.7); }
+  function wave3(t) { return 1.7 + 1.1 * Math.sin(t * 0.027 + 2.1); }
+  function makeField(cap, n, w, h, seed) {
+    var rnd = mulberry(seed), gw = Math.max(16, Math.round(w * 96)), gh = Math.max(16, Math.round(h * 96)), g = gw * gh, fw = gw * 3, fh = gh * 3, i, th;
+    var F = { cap: cap, n: n, w: w, h: h, gw: gw, gh: gh, fw: fw, fh: fh, t: 0, tc: 0, held: false, mem: 0, wander: false, smooth: false, mix: 0, wx: 0, wx2: 0, wx3: 0, w3: 0, room: 1, pull: 0.18, press: 3.0, k1: 1, k2: 1, k3: 0,
+      x: new Float32Array(cap), y: new Float32Array(cap), vx: new Float32Array(cap), vy: new Float32Array(cap), px: new Float32Array(cap), py: new Float32Array(cap),
+      ch: new Float32Array(cap), c1: new Float32Array(cap), s1: new Float32Array(cap), c2: new Float32Array(cap), s2: new Float32Array(cap), c3: new Float32Array(cap), s3: new Float32Array(cap),
+      C1: new Float32Array(g), S1: new Float32Array(g), C2: new Float32Array(g), S2: new Float32Array(g), C3: new Float32Array(g), S3: new Float32Array(g), tmp: new Float32Array(g),
+      next: new Int32Array(cap), qx: new Float32Array(cap), qy: new Float32Array(cap), head: null,
+      gx: [0, 1, 2, 3, 4, 5].map(function () { return new Float32Array(g); }), gy: [0, 1, 2, 3, 4, 5].map(function () { return new Float32Array(g); }),
+      unused: 0 };
+    for (i = 0; i < cap; i++) {
+      F.x[i] = rnd() * w; F.y[i] = rnd() * h; F.vx[i] = (rnd() - 0.5) * 0.04; F.vy[i] = (rnd() - 0.5) * 0.04;
+      F.ch[i] = (i * 0.6180339887 + rnd() * 0.0005) % 1; th = 6.283185307 * F.ch[i];   /* no two alike: every position has its own character */
+      F.c1[i] = Math.cos(th); F.s1[i] = Math.sin(th); F.c2[i] = Math.cos(2 * th); F.s2[i] = Math.sin(2 * th); F.c3[i] = Math.cos(3 * th); F.s3[i] = Math.sin(3 * th);
+    }
+    return F;
+  }
+  function blur(a, tmp, gw, gh, r, passes) {
+    var p, x, y, k, sum, row, inv = 1 / (2 * r + 1);
+    for (p = 0; p < passes; p++) {
+      for (y = 0; y < gh; y++) {
+        row = y * gw; sum = 0;
+        for (k = -r; k <= r; k++) { sum += a[row + ((k + gw) % gw)]; }
+        for (x = 0; x < gw; x++) { tmp[row + x] = sum * inv; sum += a[row + ((x + r + 1) % gw)] - a[row + ((x - r + gw) % gw)]; }
+      }
+      for (x = 0; x < gw; x++) {
+        sum = 0;
+        for (k = -r; k <= r; k++) { sum += tmp[((k + gh) % gh) * gw + x]; }
+        for (y = 0; y < gh; y++) { a[y * gw + x] = sum * inv; sum += tmp[((y + r + 1) % gh) * gw + x] - tmp[((y - r + gh) % gh) * gw + x]; }
+      }
+    }
+  }
+  var FAMDRV = 2.4;      /* how hard a fractured family is driven round its middle in its way, as a single bubble's ring chases its tail: off the page, with no drive a family's parallel decayed and it broke again as soon as its grace was up */
+  var HELDK = 18;      /* how hard a held parallel pushes a member back, per unit of the field's time and of straying: off the page, at 4 shapes fell apart in a second and a half, at 30 a bubble at 2,848 positions never ended, at 18 round ones lasted 25 to 45 seconds and shapes 14 to 30 */
+  function stepField(F, dt, ptr) {
+    var n = F.n, w = F.w, h = F.h, gw = F.gw, gh = F.gh, fw = F.fw, fh = F.fh, g = gw * gh, gf = fw * fh, x = F.x, y = F.y;
+    var icw = gw / w, ich = gh / h, ifw = fw / w, ifh = fh / h, i, u, v, i0, i1, j0, j1, tx, ty, a, b, c, d, wa, wb, wc, wd;
+    var C1 = F.C1, S1 = F.S1, C2 = F.C2, S2 = F.S2, C3 = F.C3, S3 = F.S3, three = F.k3 > 0, sc = g / n;
+    if (!F.A) { F.A = [new Float32Array(g), new Float32Array(g), new Float32Array(g), new Float32Array(g), new Float32Array(g), new Float32Array(g)]; F.W = new Float32Array(g); F.Dn = new Float32Array(g); }
+    var Dn = F.Dn, Wr = F.W, keepF, addF, q, AA, CC;
+    for (i = 0; i < g; i++) { C1[i] = 0; S1[i] = 0; C2[i] = 0; S2[i] = 0; C3[i] = 0; S3[i] = 0; Dn[i] = 0; }
+    for (i = 0; i < n; i++) {                          /* each presses into the fields, shared smoothly between the four nearest places */
+      u = x[i] * icw; v = y[i] * ich; i0 = u | 0; j0 = v | 0; tx = u - i0; ty = v - j0;
+      if (i0 >= gw) { i0 = gw - 1; tx = 1; } if (j0 >= gh) { j0 = gh - 1; ty = 1; }
+      i1 = i0 + 1 === gw ? 0 : i0 + 1; j1 = j0 + 1 === gh ? 0 : j0 + 1;
+      a = j0 * gw + i0; b = j0 * gw + i1; c = j1 * gw + i0; d = j1 * gw + i1;
+      wa = (1 - tx) * (1 - ty) * sc; wb = tx * (1 - ty) * sc; wc = (1 - tx) * ty * sc; wd = tx * ty * sc;
+      C1[a] += F.c1[i] * wa; C1[b] += F.c1[i] * wb; C1[c] += F.c1[i] * wc; C1[d] += F.c1[i] * wd;
+      S1[a] += F.s1[i] * wa; S1[b] += F.s1[i] * wb; S1[c] += F.s1[i] * wc; S1[d] += F.s1[i] * wd;
+      C2[a] += F.c2[i] * wa; C2[b] += F.c2[i] * wb; C2[c] += F.c2[i] * wc; C2[d] += F.c2[i] * wd;
+      S2[a] += F.s2[i] * wa; S2[b] += F.s2[i] * wb; S2[c] += F.s2[i] * wc; S2[d] += F.s2[i] * wd;
+      Dn[a] += wa; Dn[b] += wb; Dn[c] += wc; Dn[d] += wd;
+      if (three) {                                       /* the threefold part: characters a third of the way round the ring count as kin */
+        C3[a] += F.c3[i] * wa; C3[b] += F.c3[i] * wb; C3[c] += F.c3[i] * wc; C3[d] += F.c3[i] * wd;
+        S3[a] += F.s3[i] * wa; S3[b] += F.s3[i] * wb; S3[c] += F.s3[i] * wc; S3[d] += F.s3[i] * wd;
+      }
+    }
+    /* The ground can be impressed. What it holds at each place is the mark of who has passed there lately, the newest counting most,
+       and it fades at a steady rate where no one goes. So each position answers to where the others have been, and not only to where they are. */
+    if (F.mem > 0) {
+      keepF = Math.exp(-dt / F.mem); addF = 1 - keepF;
+      for (q = 0; q < (three ? 6 : 4); q++) { AA = F.A[q]; CC = q === 0 ? C1 : q === 1 ? S1 : q === 2 ? C2 : q === 3 ? S2 : q === 4 ? C3 : S3; for (i = 0; i < g; i++) { AA[i] = keepF * AA[i] + addF * CC[i]; CC[i] = AA[i]; } }
+      for (i = 0; i < g; i++) { Wr[i] = keepF * Wr[i] + addF * Dn[i]; }
+    } else { for (i = 0; i < g; i++) { Wr[i] = Dn[i]; } }
+    /* The average each one reads, two ways. Square, as the piece began: a square patch, taken three times. That average reads a pattern
+       about two thirds of its own width back reversed, and where kin press apart, pressing away from it leaves a grid at that pitch.
+       Smoothed: narrower patches taken an even number of times, about as wide overall, which reverse nothing, so no grid is left. */
+    var br1 = F.smooth ? 3 : 5, bp1 = F.smooth ? 8 : 3, br2 = F.smooth ? 2 : 3, bp2 = F.smooth ? 6 : 3;
+    blur(C1, F.tmp, gw, gh, br1, bp1); blur(S1, F.tmp, gw, gh, br1, bp1); blur(C2, F.tmp, gw, gh, br2, bp2); blur(S2, F.tmp, gw, gh, br2, bp2);
+    if (three) { blur(C3, F.tmp, gw, gh, br2, bp2); blur(S3, F.tmp, gw, gh, br2, bp2); }
+    /* the slope of every field, worked out once at each place, so that the push on a position changes smoothly as it moves */
+    var fields = [C1, S1, C2, S2, C3, S3], k, src, GX, GY, xx, yy, row, up, dn;
+    for (k = 0; k < (three ? 6 : 4); k++) {
+      src = fields[k]; GX = F.gx[k]; GY = F.gy[k];
+      for (yy = 0; yy < gh; yy++) {
+        row = yy * gw; up = (yy === 0 ? gh - 1 : yy - 1) * gw; dn = (yy === gh - 1 ? 0 : yy + 1) * gw;
+        for (xx = 0; xx < gw; xx++) {
+          GX[row + xx] = (src[row + (xx === gw - 1 ? 0 : xx + 1)] - src[row + (xx === 0 ? gw - 1 : xx - 1)]) * 0.5 * icw;
+          GY[row + xx] = (src[dn + xx] - src[up + xx]) * 0.5 * ich;
+        }
+      }
+    }
+    var G0x = F.gx[0], G1x = F.gx[1], G2x = F.gx[2], G3x = F.gx[3], G0y = F.gy[0], G1y = F.gy[1], G2y = F.gy[2], G3y = F.gy[3], G4x = F.gx[4], G5x = F.gx[5], G4y = F.gy[4], G5y = F.gy[5];
+    /* no two in one place: each presses directly on any neighbour closer than the room it keeps */
+    var r0 = 0.0035 * F.room, hx = Math.max(1, Math.floor(w / r0)), hy = Math.max(1, Math.floor(h / r0)), hn = hx * hy, ihx = hx / w, ihy = hy / h;
+    if (!F.head || F.head.length < hn) { F.head = new Int32Array(hn); }
+    var head = F.head, next = F.next, qx = F.qx, qy = F.qy, hc, ci, cj, ni, nj, j, ddx, ddy, d2, dd, pf, r02 = r0 * r0, hw2 = w / 2, hh2 = h / 2, checks, hard = F.press;
+    for (i = 0; i < hn; i++) { head[i] = -1; }
+    for (i = 0; i < n; i++) { qx[i] = 0; qy[i] = 0; ci = (x[i] * ihx) | 0; if (ci >= hx) { ci = hx - 1; } cj = (y[i] * ihy) | 0; if (cj >= hy) { cj = hy - 1; } hc = cj * hx + ci; next[i] = head[hc]; head[hc] = i; }
+    for (i = 0; i < n; i++) {
+      ci = (x[i] * ihx) | 0; if (ci >= hx) { ci = hx - 1; } cj = (y[i] * ihy) | 0; if (cj >= hy) { cj = hy - 1; } checks = 0;
+      for (nj = -1; nj <= 1 && checks < 90; nj++) {
+        for (ni = -1; ni <= 1 && checks < 90; ni++) {
+          j = head[((cj + nj + hy) % hy) * hx + ((ci + ni + hx) % hx)];
+          while (j >= 0 && checks < 90) {
+            if (j > i) {
+              checks++;
+              ddx = x[j] - x[i]; if (ddx > hw2) { ddx -= w; } else if (ddx < -hw2) { ddx += w; }
+              ddy = y[j] - y[i]; if (ddy > hh2) { ddy -= h; } else if (ddy < -hh2) { ddy += h; }
+              d2 = ddx * ddx + ddy * ddy;
+              if (d2 < r02 && d2 > 1e-12) { dd = Math.sqrt(d2); pf = hard * (1 - dd / r0) / dd; qx[i] -= pf * ddx; qy[i] -= pf * ddy; qx[j] += pf * ddx; qy[j] += pf * ddy; }
+            }
+            j = next[j];
+          }
+        }
+      }
+    }
+    var t = F.tc, mx = F.mix, phi1 = drift1(F), phi2 = wave2(t), phi3 = wave3(t), ph4 = t * 0.023 + 2, dph;   /* the asymmetry drifts, so no pattern is held */
+    if (mx > 0) { phi2 += mx * (2.2 + F.wx2 - phi2); phi3 += mx * (1.7 + F.wx3 - phi3); dph = F.w3 - ph4; dph -= 6.283185307 * Math.round(dph / 6.283185307); ph4 += mx * dph; }
+    var cp1 = Math.cos(phi1), sp1 = Math.sin(phi1), cp2 = Math.cos(phi2), sp2 = Math.sin(phi2), cp3 = Math.cos(phi3), sp3 = Math.sin(phi3);
+    var pull1 = F.pull * F.k1, pull2 = F.pull * 0.45 * (1 + Math.sin(ph4)) * F.k2, pull3 = F.pull * 0.45 * F.k3, damp = Math.exp(-1.6 * dt);
+    F.dr = [cp1, sp1, cp2, sp2, cp3, sp3, pull1, pull2, pull3];
+    var a1, b1, a2, b2, a3, b3, fx, fy, dx, dy, rr, f, hw = w / 2, hh = h / 2, sx, sy, q00, q10, q01, q11, sp, vmax = 0.9;
+    /* A bubble dropped with a held parallel has no way of its own: its way is whatever its members share in going round, each member is pushed
+       back toward that by how far it strays (HELDK), and it holds as far as what they share outweighs their spread about it.
+       Bubbles. Each keeps its inside at a share of the whole's average crowding. How many it holds is counted once a step and set against
+       its share of the total. Fuller than that, it presses out from inside and its skin turns back what would come in; emptier, it draws in
+       from round about, as far again as its own width, and its skin turns back what would leave. Either way in proportion to how far off
+       its share it is, so once it holds its share it does nothing.
+       Its ring is a circuit that chases its own tail: each on the ring is drawn toward where the ones just ahead of it round the ring are,
+       in its heading, which is whichever way things were already turning where it was dropped. How far the heading holds is read here:
+       of all the going-round on the ring, how much goes its way, from -1 to 1.
+       A bubble may be laid out as a line, a square, a block, a stack or an angle of little ones: each piece is a bubble in its own right, and the pieces
+       alternate their ways round from the middle one, like gears on a checkerboard, so where two meet their rings run the same way. */
+    var bub = F.bub, nbub = bub ? bub.length : 0, bi, bb, bcnt, bv, bg, bk, bs, bvt, bvs, br2, bri2, bro2, btx, bty, bd, bcc, bvti, bvsi, brc, bj, bo, fm, fk, dgx, dgy, bl = null, BC, BA, BS, bcw, bch, bcix, bciy, bx0, bx1, by0, by1, bq;
+    if (nbub) {
+      /* Where each bubble can reach. The field is cut into cells about a round bubble's width across, and each cell lists the bubbles whose
+         reach, twice their width, touches it; each position then looks only at the bubbles listed for its cell. Every sum is taken in the
+         same order as if each position looked at every bubble, so nothing computed changes; it keeps many little bubbles affordable. */
+      bcw = Math.max(1, Math.floor(w / 0.06)); bch = Math.max(1, Math.floor(h / 0.06)); bcix = bcw / w; bciy = bch / h;
+      if (!F.bcell || F.bcell.length !== bcw * bch) { F.bcell = []; for (bq = 0; bq < bcw * bch; bq++) { F.bcell.push([]); } }
+      BC = F.bcell; for (bq = 0; bq < BC.length; bq++) { BC[bq].length = 0; }
+      for (bi = 0; bi < nbub; bi++) {
+        bb = bub[bi]; f = 2 * bb.r;
+        bx0 = Math.floor((bb.x - f) * bcix); bx1 = Math.floor((bb.x + f) * bcix); by0 = Math.floor((bb.y - f) * bciy); by1 = Math.floor((bb.y + f) * bciy);
+        if (bx1 - bx0 >= bcw) { bx0 = 0; bx1 = bcw - 1; } if (by1 - by0 >= bch) { by0 = 0; by1 = bch - 1; }
+        for (bj = by0; bj <= by1; bj++) { for (bk = bx0; bk <= bx1; bk++) { BC[((bj % bch) + bch) % bch * bcw + ((bk % bcw) + bcw) % bcw].push(bi); } }
+      }
+      if (!F.bcl || F.bcl.length < n) { F.bcl = new Int32Array(F.x.length); }
+      BA = F.bcl;
+      for (i = 0; i < n; i++) { bk = (x[i] * bcix) | 0; bj = (y[i] * bciy) | 0; BA[i] = (bj < bch ? bj : bch - 1) * bcw + (bk < bcw ? bk : bcw - 1); }
+      if (!F.bsum || F.bsum.length < 16 * nbub) { F.bsum = new Float64Array(16 * Math.max(64, nbub)); }
+      BS = F.bsum;
+    }
+    for (bi = 0; bi < nbub; bi++) {
+      bb = bub[bi];
+      if (!bb.qx) { bb.qx = new Float64Array(16); bb.qy = new Float64Array(16); bb.qn = new Int32Array(16); bb.px = new Float64Array(8); bb.py = new Float64Array(8); bb.pn = new Int32Array(8); }
+      for (bk = 0; bk < 16; bk++) { bb.qx[bk] = 0; bb.qy[bk] = 0; bb.qn[bk] = 0; }
+      for (bk = 0; bk < 8; bk++) { bb.px[bk] = 0; bb.py[bk] = 0; bb.pn[bk] = 0; }
+      for (bk = 16 * bi; bk < 16 * bi + 16; bk++) { BS[bk] = 0; }      /* how many in it, how many in its inner half, the going-round on its ring and in its inner half, their squares, and what it moves by */
+    }
+    if (nbub) {        /* families: the pieces a bubble fractured into hold one parallel, about the middle of them all */
+      F.fam = F.fam || {};
+      for (fk in F.fam) { F.fam[fk].n = 0; }
+      for (bi = 0; bi < nbub; bi++) {
+        bb = bub[bi]; if (!bb.fam) { continue; }
+        fm = F.fam[bb.fam] || (F.fam[bb.fam] = { n: 0 });
+        if (!fm.n) { fm.x0 = bb.x; fm.y0 = bb.y; fm.sx = 0; fm.sy = 0; }
+        dx = bb.x - fm.x0; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+        dy = bb.y - fm.y0; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        fm.sx += dx; fm.sy += dy; fm.n += 1;
+      }
+      for (fk in F.fam) { fm = F.fam[fk]; if (fm.n) { fm.x = fm.x0 + fm.sx / fm.n; fm.y = fm.y0 + fm.sy / fm.n; fm.c = 0; fm.s = 0; fm.s2 = 0; } else { delete F.fam[fk]; } }
+      for (bi = 0; bi < nbub; bi++) {
+        bb = bub[bi]; if (!bb.fam) { continue; } fm = F.fam[bb.fam];
+        dx = bb.x - fm.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+        dy = bb.y - fm.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        bb.ogx = dx; bb.ogy = dy;      /* where this piece sits from its family's middle */
+      }
+    }
+    for (i = 0; i < n && nbub; i++) {
+      bl = BC[BA[i]];
+      for (bj = 0; bj < bl.length; bj++) {
+        bi = bl[bj]; bb = bub[bi]; br2 = bb.r * bb.r; bri2 = 0.5 * br2; bro2 = 2.56 * br2;   /* the line between the halves is at half the room: 0.7071 of the width */
+        dx = x[i] - bb.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+        dy = y[i] - bb.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        rr = dx * dx + dy * dy;
+        if (rr < br2) { BS[16 * bi] += 1; if (rr < bri2) { BS[16 * bi + 1] += 1; } }
+        if (bb.fam && rr > 0.01 * br2 && rr < bro2) { dgx = dx + bb.ogx; dgy = dy + bb.ogy; bd = Math.sqrt(dgx * dgx + dgy * dgy); if (bd > 1e-9) { bv = (dgx * F.vy[i] - dgy * F.vx[i]) / bd; BS[16 * bi + 13] += 1; BS[16 * bi + 14] += bv; BS[16 * bi + 15] += bv * bv; } }      /* a fragment: its members' going-round about the family's middle */
+        if (rr < bro2) { BS[16 * bi + 8] += 1; BS[16 * bi + 9] += F.vx[i]; BS[16 * bi + 10] += F.vy[i]; if (rr < br2) { BS[16 * bi + 11] += dx; BS[16 * bi + 12] += dy; } }      /* for moving it: everything within its reach, and where the ones inside it sit */
+        if (rr > 0.01 * br2 && rr < bri2) {      /* in the inner half: which eighth of it, and how it is going round */
+          bs = ((Math.atan2(dy, dx) / 6.283185307 + 1) * 8 | 0) % 8; bb.px[bs] += dx; bb.py[bs] += dy; bb.pn[bs] += 1;
+          BS[16 * bi + 5] += Math.sqrt(F.vx[i] * F.vx[i] + F.vy[i] * F.vy[i]); bv = (dx * F.vy[i] - dy * F.vx[i]) / Math.sqrt(rr); BS[16 * bi + 4] += bv; BS[16 * bi + 7] += bv * bv;
+        }
+        if (rr > bri2 && rr < bro2) {      /* on the outer ring: which sixteenth of it, and how it is going round */
+          bs = ((Math.atan2(dy, dx) / 6.283185307 + 1) * 16 | 0) % 16; bb.qx[bs] += dx; bb.qy[bs] += dy; bb.qn[bs] += 1;
+          BS[16 * bi + 3] += Math.sqrt(F.vx[i] * F.vx[i] + F.vy[i] * F.vy[i]); bv = (dx * F.vy[i] - dy * F.vx[i]) / Math.sqrt(rr); BS[16 * bi + 2] += bv; BS[16 * bi + 6] += bv * bv;
+        }
+      }
+    }
+    for (bi = 0; bi < nbub; bi++) {
+      bb = bub[bi]; br2 = bb.r * bb.r; bcnt = BS[16 * bi]; bcc = BS[16 * bi + 1]; bvt = BS[16 * bi + 2]; bvs = BS[16 * bi + 3]; bvti = BS[16 * bi + 4]; bvsi = BS[16 * bi + 5];
+      bb.c = bcnt; bb.want = bb.k * n * Math.PI * br2 / (w * h); bb.m = (bcnt - bb.want) / bb.want;
+      bb.turn = bvs > 0 ? bvt / bvs : 0;
+      if (!bb.held && !bb.hd) { bb.hd = bb.lead && bb.lead.hd ? bb.lead.hd * bb.par : bb.turn < 0 ? -1 : 1; }      /* its heading, from what was already turning there; a piece of a shape takes the middle piece's, or the opposite, alternating like gears */
+      if (!bb.held) { bb.hold = bb.hold === undefined ? bb.turn * bb.hd : 0.95 * bb.hold + 0.05 * bb.turn * bb.hd; }   /* how far each heading holds, eased over about a third of a second */
+      bb.cc = bcc; bb.wantIn = bb.want / 2; bb.mi = (bcc - bb.wantIn) / bb.wantIn;      /* the inner half holds half the share */
+      bb.turnIn = bvsi > 0 ? bvti / bvsi : 0;
+      if (!bb.held) { bb.holdIn = bb.holdIn === undefined ? -bb.turnIn * bb.hd : 0.95 * bb.holdIn - 0.05 * bb.turnIn * bb.hd; }   /* the inner half's heading is the outer's reflected */
+      for (bk = 0, bq = 0; bk < 16; bk++) { bq += bb.qn[bk]; } bb.om = bq ? bvt / bq / (1.21 * bb.r) : 0;      /* how fast the outer ring is going round, in radians a unit of the field's time (its middle radius is 1.21 of the width); only drawn */
+      for (bk = 0, bq = 0; bk < 8; bk++) { bq += bb.pn[bk]; } bb.omi = bq ? bvti / bq / (0.48 * bb.r) : 0;      /* and the inner half (middle radius 0.48 of the width) */
+      if (bb.held && !bb.fam) {        /* a held parallel: the circuit is whatever its members share in going round, and it holds as far as that outweighs their straying from it */
+        for (bk = 0, bq = 0; bk < 16; bk++) { bq += bb.qn[bk]; } for (bk = 0; bk < 8; bk++) { bq += bb.pn[bk]; }
+        bd = bq ? (bvt + bvti) / bq : 0; btx = bq ? (BS[16 * bi + 6] + BS[16 * bi + 7]) / bq : 0; bty = Math.sqrt(Math.max(0, btx - bd * bd));      /* the shared going-round, and the spread about it */
+        bb.S = bd; bb.Se = bb.Se === undefined ? bd : 0.95 * bb.Se + 0.05 * bd; bb.hd = bb.Se < 0 ? -1 : 1;      /* its way now: the shared going-round's, eased */
+        btx = (Math.abs(bd) - bty) / (Math.abs(bd) + bty + 1e-12);
+        bb.hold = bb.hold === undefined ? btx : 0.95 * bb.hold + 0.05 * btx; bb.holdIn = bb.hold;      /* one parallel: the halves hold it together */
+      }
+    }
+    for (bi = 0; bi < nbub; bi++) { bb = bub[bi]; if (bb.fam) { fm = F.fam[bb.fam]; fm.c += BS[16 * bi + 13]; fm.s += BS[16 * bi + 14]; fm.s2 += BS[16 * bi + 15]; } }
+    for (fk in (nbub ? F.fam : {})) {        /* one parallel for a family: what all its pieces' members share in going round its middle, against their spread */
+      fm = F.fam[fk]; bd = fm.c ? fm.s / fm.c : 0; btx = fm.c ? fm.s2 / fm.c : 0; bty = Math.sqrt(Math.max(0, btx - bd * bd));
+      fm.S = bd; fm.Se = fm.Se === undefined ? bd : 0.95 * fm.Se + 0.05 * bd; btx = (Math.abs(bd) - bty) / (Math.abs(bd) + bty + 1e-12);
+      fm.hold = fm.hold === undefined ? btx : 0.95 * fm.hold + 0.05 * btx;
+    }
+    for (bi = 0; bi < nbub; bi++) { bb = bub[bi]; if (bb.fam) { fm = F.fam[bb.fam]; bb.S = fm.S; bb.hd = fm.Se < 0 ? -1 : 1; bb.hold = fm.hold; bb.holdIn = fm.hold; } }
+    for (i = 0; i < n; i++) {
+      u = x[i] * icw; v = y[i] * ich; i0 = u | 0; j0 = v | 0; tx = u - i0; ty = v - j0;
+      if (i0 >= gw) { i0 = gw - 1; tx = 1; } if (j0 >= gh) { j0 = gh - 1; ty = 1; }
+      i1 = i0 + 1 === gw ? 0 : i0 + 1; j1 = j0 + 1 === gh ? 0 : j0 + 1;
+      a = j0 * gw + i0; b = j0 * gw + i1; c = j1 * gw + i0; d = j1 * gw + i1;
+      a1 = (F.c1[i] * cp1 - F.s1[i] * sp1) * pull1; b1 = (F.s1[i] * cp1 + F.c1[i] * sp1) * pull1;
+      a2 = (F.c2[i] * cp2 - F.s2[i] * sp2) * pull2; b2 = (F.s2[i] * cp2 + F.c2[i] * sp2) * pull2;
+      wa = (1 - tx) * (1 - ty); wb = tx * (1 - ty); wc = (1 - tx) * ty; wd = tx * ty;
+      fx = a1 * (G0x[a] * wa + G0x[b] * wb + G0x[c] * wc + G0x[d] * wd) + b1 * (G1x[a] * wa + G1x[b] * wb + G1x[c] * wc + G1x[d] * wd)
+         + a2 * (G2x[a] * wa + G2x[b] * wb + G2x[c] * wc + G2x[d] * wd) + b2 * (G3x[a] * wa + G3x[b] * wb + G3x[c] * wc + G3x[d] * wd);
+      fy = a1 * (G0y[a] * wa + G0y[b] * wb + G0y[c] * wc + G0y[d] * wd) + b1 * (G1y[a] * wa + G1y[b] * wb + G1y[c] * wc + G1y[d] * wd)
+         + a2 * (G2y[a] * wa + G2y[b] * wb + G2y[c] * wc + G2y[d] * wd) + b2 * (G3y[a] * wa + G3y[b] * wb + G3y[c] * wc + G3y[d] * wd);
+      if (three) {
+        a3 = (F.c3[i] * cp3 - F.s3[i] * sp3) * pull3; b3 = (F.s3[i] * cp3 + F.c3[i] * sp3) * pull3;
+        fx += a3 * (G4x[a] * wa + G4x[b] * wb + G4x[c] * wc + G4x[d] * wd) + b3 * (G5x[a] * wa + G5x[b] * wb + G5x[c] * wc + G5x[d] * wd);
+        fy += a3 * (G4y[a] * wa + G4y[b] * wb + G4y[c] * wc + G4y[d] * wd) + b3 * (G5y[a] * wa + G5y[b] * wb + G5y[c] * wc + G5y[d] * wd);
+      }
+      fx += F.qx[i]; fy += F.qy[i];
+      if (ptr && ptr.down) {                          /* an outside pressure, pressing away or drawing in */
+        dx = x[i] - ptr.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+        dy = y[i] - ptr.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        rr = Math.sqrt(dx * dx + dy * dy);
+        if (rr < 0.35 && rr > 1e-5) { f = ptr.sign * 2.2 * (1 - rr / 0.35); fx += f * dx / rr; fy += f * dy / rr; }
+      }
+      bl = nbub ? BC[BA[i]] : null;      /* only the bubbles that can reach this one */
+      for (bj = 0; bl && bj < bl.length; bj++) {
+        bb = bub[bl[bj]];
+        dx = x[i] - bb.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+        dy = y[i] - bb.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        rr = Math.sqrt(dx * dx + dy * dy);
+        if (rr < 1e-5 || rr > 2 * bb.r) { continue; }
+        brc = 0.7071 * bb.r;
+        if (bb.m > 0) { if (rr < bb.r && rr > brc) { f = 2.2 * Math.min(1, bb.m) * (0.3 + 0.7 * rr / bb.r); fx += f * dx / rr; fy += f * dy / rr; } }   /* fuller than its share: the outer half presses out */
+        else if (rr > bb.r) { f = 2.2 * Math.min(1, -bb.m) * (2 - rr / bb.r); fx -= f * dx / rr; fy -= f * dy / rr; }                     /* emptier: it draws in from round about */
+        if (rr < brc) {
+          if (bb.mi > 0) { f = 2.2 * Math.min(1, bb.mi) * (0.3 + 0.7 * rr / brc); fx += f * dx / rr; fy += f * dy / rr; }      /* the inner half fuller than its half: it presses out into the outer half */
+          if (rr > 0.1 * bb.r && !bb.fam) {      /* the inner half chases its own tail the other way round */
+            bs = ((Math.atan2(dy, dx) / 6.283185307 + 1) * 8 | 0) % 8; bk = (bs + (bb.held ? bb.hd : -bb.hd) + 8) % 8;
+            if (bb.pn[bk]) { btx = bb.px[bk] / bb.pn[bk] - dx; bty = bb.py[bk] / bb.pn[bk] - dy; bd = Math.sqrt(btx * btx + bty * bty); if (bd > 1e-6) { fx += 2.8 * btx / bd; fy += 2.8 * bty / bd; } }   /* stronger than the outer's 1.2, since the outer half drags on it across the line between them */
+          }
+        } else if (bb.mi < 0 && rr < bb.r) { f = 2.2 * Math.min(1, -bb.mi) * (1 - (rr - brc) / (bb.r - brc)); fx -= f * dx / rr; fy -= f * dy / rr; }   /* emptier than its half: it draws in from the outer half */
+        if (rr > brc && rr < 1.6 * bb.r && !bb.fam) {      /* the outer ring chases its own tail: drawn toward the middle of the next sixteenth of it, in its heading */
+          bs = ((Math.atan2(dy, dx) / 6.283185307 + 1) * 16 | 0) % 16; bk = (bs + bb.hd + 16) % 16;
+          if (bb.qn[bk]) { btx = bb.qx[bk] / bb.qn[bk] - dx; bty = bb.qy[bk] / bb.qn[bk] - dy; bd = Math.sqrt(btx * btx + bty * bty); if (bd > 1e-6) { fx += 1.2 * btx / bd; fy += 1.2 * bty / bd; } }
+        }
+        if (bb.held && bb.fam && rr > 0.1 * bb.r && rr < 1.6 * bb.r) { dgx = dx + bb.ogx; dgy = dy + bb.ogy; bd = Math.sqrt(dgx * dgx + dgy * dgy); if (bd > 1e-9) { f = HELDK * (bb.S - (dgx * F.vy[i] - dgy * F.vx[i]) / bd) + FAMDRV * bb.hd; fx -= f * dgy / bd; fy += f * dgx / bd; } }      /* a fragment's members, about the family's middle: pushed back toward what the family shares, and driven round it in the family's way */
+        else if (bb.held && rr > 0.1 * bb.r && rr < 1.6 * bb.r) { f = HELDK * (bb.S - (dx * F.vy[i] - dy * F.vx[i]) / rr); fx -= f * dy / rr; fy += f * dx / rr; }      /* a held parallel: each member pushed back toward what the circuit shares, by how far it strays */
+      }
+      F.px[i] = x[i]; F.py[i] = y[i];
+      sx = (F.vx[i] + fx * dt) * damp; sy = (F.vy[i] + fy * dt) * damp;
+      sp = sx * sx + sy * sy; if (sp > vmax * vmax) { sp = vmax / Math.sqrt(sp); sx *= sp; sy *= sp; }
+      for (bj = 0; bl && bj < bl.length; bj++) {      /* the bubble's skin: fuller than its share it turns back what would come in, emptier what would leave */
+        bb = bub[bl[bj]];
+        dx = x[i] - bb.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+        dy = y[i] - bb.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        rr = Math.sqrt(dx * dx + dy * dy);
+        if (rr < 0.6 * bb.r || rr > 1.25 * bb.r) { continue; }
+        bv = (sx * dx + sy * dy) / rr;
+        if (rr > 0.85 * bb.r) { if (bb.m && (bb.m > 0 ? bv < 0 : bv > 0)) { bg = 2 * Math.min(1, Math.abs(bb.m)) * bv / rr; sx -= bg * dx; sy -= bg * dy; } }        /* the bubble's edge */
+        else if (rr < 0.8 * bb.r) { if (bb.mi && (bb.mi > 0 ? bv < 0 : bv > 0)) { bg = 2 * Math.min(1, Math.abs(bb.mi)) * bv / rr; sx -= bg * dx; sy -= bg * dy; } }   /* the line between the halves */
+      }
+      F.vx[i] = sx; F.vy[i] = sy;
+      x[i] += sx * dt; y[i] += sy * dt;
+      if (x[i] < 0) { x[i] += w; } else if (x[i] >= w) { x[i] -= w; }
+      if (y[i] < 0) { y[i] += h; } else if (y[i] >= h) { y[i] -= h; }
+    }
+    for (bi = 0; bi < nbub; bi++) {        /* a bubble goes where what it holds goes: carried by the mean motion of everything within its reach, and drawn toward the middle of the ones inside it */
+      bb = bub[bi]; bq = BS[16 * bi + 8];
+      if (bq > 0) { bb.x += BS[16 * bi + 9] / bq * dt; bb.y += BS[16 * bi + 10] / bq * dt; }
+      if (BS[16 * bi] >= 3) { bb.x += 1.5 * dt * BS[16 * bi + 11] / BS[16 * bi]; bb.y += 1.5 * dt * BS[16 * bi + 12] / BS[16 * bi]; }
+    }
+    for (bi = 0; bi < nbub; bi++) { for (bj = bi + 1; bj < nbub; bj++) {        /* two that overlap are eased apart, so a shape can bend while its pieces keep their own room */
+      bb = bub[bi]; bo = bub[bj];
+      dx = bo.x - bb.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+      dy = bo.y - bb.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+      rr = Math.sqrt(dx * dx + dy * dy); f = bb.r + bo.r - rr;
+      if (f > 0 && rr > 1e-9) { f = 0.5 * f * Math.min(1, 10 * dt) / rr; bb.x -= f * dx; bb.y -= f * dy; bo.x += f * dx; bo.y += f * dy; }
+    } }
+    for (bi = 0; bi < nbub; bi++) { bb = bub[bi]; bb.x -= Math.floor(bb.x / w) * w; bb.y -= Math.floor(bb.y / h) * h; }
+    F.t += dt;
+    if (!F.held) {                               /* the drift can be held, and then the asymmetry stays where it is */
+      F.tc += dt;
+      if (F.wander) {
+        F.wx += -F.wx * dt / 21 + 0.716 * Math.sqrt(2 * dt / 21) * chance(); F.wx2 += -F.wx2 * dt / 32 + 0.919 * Math.sqrt(2 * dt / 32) * chance();
+        F.wx3 += -F.wx3 * dt / 37 + 0.778 * Math.sqrt(2 * dt / 37) * chance(); F.w3 += Math.sqrt(0.023 * dt) * chance();
+        F.mix = Math.min(1, F.mix + dt * 0.5);
+      } else if (F.mix > 0) { F.mix = Math.max(0, F.mix - dt * 0.5); }
+    }
+  }
+
+
+  /* Listening: find the gatherings in the shared fields. Each one is a place where characters that count as kin have collected. */
+  function hear(F, K) {
+    var gw = F.gw, gh = F.gh, C = F.C1, Sn = F.S1, C2 = F.C2, S2 = F.S2, C3 = F.C3, S3 = F.S3, three = F.k3 > 0, st = 2, i, j, a, id, peaks = [], ok, p, q, dx, dy, cw = F.w / gw, ch = F.h / gh, a1, a2, a3, ph;
+    function amp(k) { return C[k] * C[k] + Sn[k] * Sn[k] + C2[k] * C2[k] + S2[k] * S2[k] + (three ? C3[k] * C3[k] + S3[k] * S3[k] : 0); }
+    for (j = 0; j < gh; j += st) {
+      for (i = 0; i < gw; i += st) {
+        id = j * gw + i; a = amp(id);
+        if (a < 0.02) { continue; }
+        ok = true;
+        for (dy = -st; dy <= st && ok; dy += st) { for (dx = -st; dx <= st; dx += st) { if (!dx && !dy) { continue; }
+          q = ((j + dy + gh) % gh) * gw + ((i + dx + gw) % gw); if (amp(q) > a) { ok = false; break; } } }
+        if (ok) {
+          a1 = C[id] * C[id] + Sn[id] * Sn[id]; a2 = C2[id] * C2[id] + S2[id] * S2[id]; a3 = three ? C3[id] * C3[id] + S3[id] * S3[id] : 0;
+          ph = a1 >= a2 && a1 >= a3 ? Math.atan2(Sn[id], C[id]) : a2 >= a3 ? Math.atan2(S2[id], C2[id]) : Math.atan2(S3[id], C3[id]);
+          peaks.push({ x: (i + 0.5) * cw, y: (j + 0.5) * ch, a: a, u: (ph + Math.PI) / 6.283185307 });
+        }
+      }
+    }
+    peaks.sort(function (m, n) { return n.a - m.a; });
+    var out = [];
+    for (p = 0; p < peaks.length && out.length < K; p++) {
+      ok = true;
+      for (q = 0; q < out.length; q++) { dx = Math.abs(peaks[p].x - out[q].x); dx = Math.min(dx, F.w - dx); dy = Math.abs(peaks[p].y - out[q].y); dy = Math.min(dy, F.h - dy); if (dx * dx + dy * dy < 0.0064) { ok = false; break; } }
+      if (ok) { out.push(peaks[p]); }
+    }
+    return out;
+  }
+
+  var V = document.getElementById('v'), vx = V.getContext('2d'), hint = document.getElementById('hint'), legend = document.getElementById('legend'), keysBtn = document.getElementById('keys');
+  var T = document.createElement('canvas'), tx = T.getContext('2d'), B = document.createElement('canvas'), bx = B.getContext('2d');
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var CAP = 32000, CROWDS = [4000, 9000, 16000, 24000, 32000], NB = 36, NSB = 48, SHIFTC = 0.45;
+  var S = { F: null, u: 1, ps: 1, cw: 0, ch: 0, dark: true, bg: 'rgb(8,22,38)', ink: 'rgb(232,240,247)', cols: [], order: null, starts: null, paused: reduce, raf: 0, last: 0, slow: 0, frames: 0,
+    long: false, wear: false, land: false, landOf: -1, hintT: 0, legT: 0, slowmo: false, zoom: 1, zx: 0, zy: 0, follow: -1, cx: 0, cy: 0, pcx: 0, pcy: 0 };
+  var ptr = { down: false, x: 0, y: 0, sign: 1, sx: -1, sy: -1 };
+  S.seed = 20261003 + Math.floor(Math.random() * 1000000);   /* each visit starts from its own scatter */
+  /* Bubbles: what each holds, as a share of the whole's average crowding, how wide it is, and how long it lasts (twelve seconds at the usual pace) */
+  var BUBK = [1 / 89, 1 / 88, 1 / 87, 1 / 86, 1 / 85, 1 / 84, 1 / 83, 1 / 82, 1 / 81, 1 / 80, 1 / 79, 1 / 78, 1 / 77, 1 / 76, 1 / 75, 1 / 74, 1 / 73, 1 / 72, 1 / 71, 1 / 70, 1 / 69, 1 / 68, 1 / 67, 1 / 66, 1 / 65, 1 / 64, 1 / 63, 1 / 62, 1 / 61, 1 / 60, 1 / 59, 1 / 58, 1 / 57, 1 / 56, 1 / 55, 1 / 54, 1 / 53, 1 / 52, 1 / 51, 1 / 50, 1 / 49, 1 / 48, 1 / 47, 1 / 46, 1 / 45, 1 / 44, 1 / 43, 1 / 42, 1 / 41, 1 / 40, 1 / 39, 1 / 38, 1 / 37, 1 / 36, 1 / 35, 1 / 34, 1 / 33, 1 / 32, 1 / 31, 1 / 30, 1 / 29, 1 / 28, 1 / 27, 1 / 26, 1 / 25, 1 / 24, 1 / 23, 1 / 22, 1 / 21, 1 / 20, 1 / 19, 1 / 18, 1 / 17, 1 / 16, 1 / 15, 1 / 14, 1 / 13, 1 / 12, 1 / 11, 1 / 10, 1 / 9, 9 / 81, 1 / 8, 1 / 7, 1 / 6, 1 / 5, 1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 4 / 5, 5 / 6, 6 / 7, 7 / 8, 8 / 9, 1, 9 / 8, 8 / 7, 7 / 6, 6 / 5, 5 / 4, 4 / 3, 3 / 2, 2, 3, 4, 5, 6, 7, 8, 9, 81 / 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89], BUBN = ['1/89', '1/88', '1/87', '1/86', '1/85', '1/84', '1/83', '1/82', '1/81', '1/80', '1/79', '1/78', '1/77', '1/76', '1/75', '1/74', '1/73', '1/72', '1/71', '1/70', '1/69', '1/68', '1/67', '1/66', '1/65', '1/64', '1/63', '1/62', '1/61', '1/60', '1/59', '1/58', '1/57', '1/56', '1/55', '1/54', '1/53', '1/52', '1/51', '1/50', '1/49', '1/48', '1/47', '1/46', '1/45', '1/44', '1/43', '1/42', '1/41', '1/40', '1/39', '1/38', '1/37', '1/36', '1/35', '1/34', '1/33', '1/32', '1/31', '1/30', '1/29', '1/28', '1/27', '1/26', '1/25', '1/24', '1/23', '1/22', '1/21', '1/20', '1/19', '1/18', '1/17', '1/16', '1/15', '1/14', '1/13', '1/12', '1/11', '1/10', '1/9', '9/81', '1/8', '1/7', '1/6', '1/5', '1/4', '1/3', '1/2', '2/3', '3/4', '4/5', '5/6', '6/7', '7/8', '8/9', '3/3', '9/8', '8/7', '7/6', '6/5', '5/4', '4/3', '3/2', '2/1', '3/1', '4/1', '5/1', '6/1', '7/1', '8/1', '9/1', '81/9', '10/1', '11/1', '12/1', '13/1', '14/1', '15/1', '16/1', '17/1', '18/1', '19/1', '20/1', '21/1', '22/1', '23/1', '24/1', '25/1', '26/1', '27/1', '28/1', '29/1', '30/1', '31/1', '32/1', '33/1', '34/1', '35/1', '36/1', '37/1', '38/1', '39/1', '40/1', '41/1', '42/1', '43/1', '44/1', '45/1', '46/1', '47/1', '48/1', '49/1', '50/1', '51/1', '52/1', '53/1', '54/1', '55/1', '56/1', '57/1', '58/1', '59/1', '60/1', '61/1', '62/1', '63/1', '64/1', '65/1', '66/1', '67/1', '68/1', '69/1', '70/1', '71/1', '72/1', '73/1', '74/1', '75/1', '76/1', '77/1', '78/1', '79/1', '80/1', '81/1', '82/1', '83/1', '84/1', '85/1', '86/1', '87/1', '88/1', '89/1'], BUBR = 0.06, BUBGRACE = 1.2, BUBMAX = 8, BUBPIECES = 150;
+  S.bubbles = false; S.bubk = 87; S.light = 2; S.pops = []; S.prior = {}; S.shape = 0; S.bubg = 0; S.angle = 1; S.circ = 2; S.famid = 0;      /* circ: 2 held and fracturing, 0 a held parallel, 1 set ways; shape: 0 round, 1 shaped by the share, 2 stacked, 3 angled; angle: an index into BANG */
+  var ROOMS = [0.25, 0.5, 1, 2, 4], ROOMN = ['A quarter', 'Half', 'As it began', 'Twice', 'Four times'];      /* room in five steps; it begins at the middle one */
+  S.roomi = 2;
+  var FAVI = [8, 80, 81, 83, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 103, 104, 105, 106, 108, 109, 110, 111, 112, 184];      /* the shares the menu had, which the 7 key jumps between */
+  var BANG = [60, 90, 120, 150];      /* 1/3 is the first choice, as before */
+  var SHAREW = { '1/81': 'an eighty-first as many', '1/9': 'a ninth as many', '9/81': 'a ninth as many', '1/7': 'a seventh as many', '1/3': 'a third as many', '1/2': 'half as many', '2/3': 'two thirds as many', '3/4': 'three quarters as many', '4/5': 'four fifths as many', '5/6': 'five sixths as many', '6/7': 'six sevenths as many', '7/8': 'seven eighths as many', '8/9': 'eight ninths as many', '3/3': 'just as many', '3/2': 'one and a half times as many', '2/1': 'twice as many', '3/1': 'three times as many', '4/1': 'four times as many', '6/1': 'six times as many', '7/1': 'seven times as many', '8/1': 'eight times as many', '9/1': 'nine times as many', '81/9': 'nine times as many', '81/1': '81 times as many', '1/4': 'a quarter as many', '1/5': 'a fifth as many', '1/6': 'a sixth as many', '1/8': 'an eighth as many', '4/3': 'four thirds as many', '5/1': 'five times as many' };
+  function shareSay() { var s = BUBN[S.bubk], pq = s.split('/'), p = +pq[0], q = +pq[1];
+    return s + ': ' + (SHAREW[s] ? SHAREW[s] + ' dots as the same space holds on average' : q === 1 ? p + ' times as many dots as the same space holds on average' : p === 1 ? 'one dot for every ' + q + ' the same space holds on average' : p + ' dots for every ' + q + ' the same space holds on average'); }      /* the share in words, for the messages */
+  function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }      /* 16000 as 16,000 */
+  var OPEN = 56;   /* where in the drift's cycle a visit opens: just before like begins drawing like, so the first gatherings form within the first half minute */
+
+  function hex(v, fb) {
+    var m = /^#([0-9a-f]{6})$/i.exec((v || '').trim()) || /^#([0-9a-f]{6})$/i.exec(fb), n = parseInt(m[1], 16);
+    return [n >> 16, (n >> 8) & 255, n & 255];
+  }
+  function keyName(k, row) { return coarse ? row : k; }      /* with a keyboard, the key; on a touch screen, the row or button to press */
+  function say(text, ms) {
+    hint.textContent = text; hint.className = '';
+    clearTimeout(S.hintT); clearTimeout(S.hintT2);
+    if (ms) { S.hintT = setTimeout(function () { hint.className = 'gone'; S.hintT2 = setTimeout(function () { hint.className = 'gone done'; clearMarks(); }, 1300); }, ms); }
+    clearMarks();
+  }
+  /* The legend and the sound options sit above the bar, however many lines the bar takes, and below the message line. */
+  var barEl = document.getElementById('bar'), fitLast = '';
+  function fitPanels() {
+    var r = barEl.getBoundingClientRect(), H = window.innerHeight, low = Math.round(hint.getBoundingClientRect().top), top = low + (window.innerWidth <= 640 ? 84 : 38), b, mh, sh, i, p = [legend, panel], key, sheet = window.innerWidth <= 640 || H <= 500;      /* the message line's room is counted from where it sits, below a notch */
+    if (sheet && H > 500) { top = Math.max(top, Math.round(0.34 * H)); }      /* on a phone held upright the sheet leaves the upper third of the picture in view */
+    if (!r.height) { return; }
+    b = Math.max(64, Math.round(H - r.top + 10)); mh = Math.max(0, Math.min(140, H - b), H - b - top);      /* at least 140 tall, rising over the message line, but not above the top of the screen (unless the bar leaves less room than the panel's own edges) */
+    sh = Math.max(0, Math.min(140, H - b), H - b - low - 84); key = b + '|' + mh + '|' + (sheet ? sh : '') + '|' + (panel ? 1 : 0);      /* the sound options' own height on a sheet, counted in what is looked at for a change */
+    if (key === fitLast) { return; }
+    fitLast = key; legend.classList.toggle('short', sheet && mh < 120);
+    for (i = 0; i < p.length; i++) { if (p[i]) { p[i].style.bottom = b + 'px'; p[i].style.maxHeight = (p[i] === legend || !sheet ? mh : sh) + 'px'; } }      /* the sound options keep their own height */
+  }
+  function setLegend(open) {
+    clearTimeout(S.legT);
+    if (!open && !legend.hidden) { S.legTop = legend.scrollTop; }
+    legend.hidden = !open;
+    keysBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    keysBtn.textContent = open ? 'Hide the legend' : 'Show the legend'; fitPanels();      /* placed once the button's new words have set the bar's height */
+    if (open) { legend.scrollTop = S.legTop || 0; if (clash()) { S.legBack = false; setPanel(false); } } else { S.legBack = false; }
+    clearMarks();
+  }
+  /* Where the legend and the sound options would lie one over the other, they take turns. */
+  function clash() {
+    var a, b;
+    if (!panel || legend.hidden || panel.hidden) { return false; }
+    a = legend.getBoundingClientRect(); b = panel.getBoundingClientRect();
+    return a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  }
+  /* The status marks stand clear of the message line, and give way to the legend or the sound options where those would lie over them. */
+  function clearMarks() {
+    var t, h, rg, i, p, ps, hide = false;
+    if (!tagsEl) { return; }
+    tagsEl.style.top = ''; tagsEl.style.visibility = '';
+    if (!tagsEl.firstChild) { return; }
+    t = tagsEl.getBoundingClientRect(); h = hint.getBoundingClientRect();
+    if (h.right > t.left) {                                  /* a narrow screen, where the message line can run under the marks */
+      if (!legend.hidden) { hide = true; }                   /* the open legend shows every setting in its rows */
+      else if (hint.textContent && hint.className.indexOf('done') < 0) {
+        rg = document.createRange(); rg.selectNodeContents(hint); h = rg.getBoundingClientRect();
+        if (h.width && h.right > t.left - 8 && t.top < h.bottom + 6) { tagsEl.style.top = Math.round(h.bottom + 6) + 'px'; t = tagsEl.getBoundingClientRect(); }
+      }
+    }
+    ps = [legend, panel];
+    for (i = 0; i < ps.length && !hide; i++) {
+      p = ps[i];
+      if (p && !p.hidden) { h = p.getBoundingClientRect(); hide = t.left < h.right && h.left < t.right && t.top < h.bottom && h.top < t.bottom; }
+    }
+    if (hide) { tagsEl.style.visibility = 'hidden'; }
+  }
+  function clearTrails() { tx.globalCompositeOperation = 'source-over'; tx.globalAlpha = 1; tx.fillStyle = S.bg; tx.fillRect(0, 0, S.cw, S.ch); }
+  function theme() {
+    var cs = window.getComputedStyle(document.documentElement), bg = hex(cs.getPropertyValue('--bg'), '#081626'), b, p, k, f, a, c;
+    S.bg = 'rgb(' + bg.join(',') + ')';
+    S.ink = 'rgb(' + hex(cs.getPropertyValue('--ink'), '#E8F0F7').join(',') + ')';
+    S.dark = (bg[0] * 0.3 + bg[1] * 0.59 + bg[2] * 0.11) < 128;
+    var st = [hex(cs.getPropertyValue('--a'), '#F4B942'), hex(cs.getPropertyValue('--b'), '#CDE4F6'), hex(cs.getPropertyValue('--c'), '#5F93D0')];
+    st.push(st[0]); S.cols = [];
+    for (b = 0; b < NB; b++) {
+      p = (b + 0.5) / NB * 3; k = Math.floor(p) % 3; f = p - Math.floor(p); a = st[k]; c = st[k + 1];
+      S.cols.push('rgb(' + Math.round(a[0] + (c[0] - a[0]) * f) + ',' + Math.round(a[1] + (c[1] - a[1]) * f) + ',' + Math.round(a[2] + (c[2] - a[2]) * f) + ')');
+    }
+    S.spec = []; for (b = 0; b < NSB; b++) { S.spec.push(spectral((b + 0.5) / NSB, S.dark ? 1 : 0.6)); }
+    clearTrails();
+    if (S.paused && S.F) { show(); }
+  }
+  function crowd(n) {
+    var F = S.F, i, counts = new Int32Array(NB + 1), b;
+    F.n = Math.min(n, CAP);
+    S.order = new Int32Array(F.n); S.starts = new Int32Array(NB + 1);
+    for (i = 0; i < F.n; i++) { counts[Math.min(NB - 1, (F.ch[i] * NB) | 0) + 1] += 1; }
+    for (b = 0; b < NB; b++) { counts[b + 1] += counts[b]; S.starts[b] = counts[b]; }
+    S.starts[NB] = F.n;
+    var fill = S.starts.slice(0, NB);
+    for (i = 0; i < F.n; i++) { b = Math.min(NB - 1, (F.ch[i] * NB) | 0); S.order[fill[b]++] = i; }
+    if (S.follow >= F.n) { S.follow = -1; }
+  }
+  function size() {
+    var w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight), i;
+    S.ps = Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(3600000 / (w * h)));
+    S.cw = Math.round(w * S.ps); S.ch = Math.round(h * S.ps);
+    V.width = S.cw; V.height = S.ch; T.width = S.cw; T.height = S.ch;
+    B.width = Math.max(2, Math.round(S.cw / 5)); B.height = Math.max(2, Math.round(S.ch / 5));
+    S.u = Math.sqrt(w * h);
+    var keep = S.F, n = keep ? keep.n : (w * h < 500000 ? 6000 : 16000);
+    S.F = makeField(CAP, n, w / S.u, h / S.u, S.seed);
+    if (keep) {
+      S.F.room = keep.room; S.F.t = keep.t; S.F.tc = keep.tc; S.F.held = keep.held; S.F.k1 = keep.k1; S.F.k2 = keep.k2; S.F.k3 = keep.k3; S.F.mem = keep.mem; S.F.wander = keep.wander; S.F.smooth = keep.smooth; S.F.mix = keep.mix; S.F.wx = keep.wx; S.F.wx2 = keep.wx2; S.F.wx3 = keep.wx3; S.F.w3 = keep.w3; S.F.bub = keep.bub;
+      for (i = 0; i < CAP; i++) { S.F.x[i] = keep.x[i] % S.F.w; S.F.y[i] = keep.y[i] % S.F.h; S.F.px[i] = S.F.x[i]; S.F.py[i] = S.F.y[i]; S.F.vx[i] = keep.vx[i]; S.F.vy[i] = keep.vy[i]; }
+    }
+    S.zx = S.F.w / 2; S.zy = S.F.h / 2;
+    if (!S.n0) { S.n0 = n; }
+    crowd(n); theme();
+  }
+  /* where the picture is read from: the middle of the space, a place zoomed in on, or one position that is followed */
+  function centre() {
+    var F = S.F, f = S.follow;
+    if (f >= 0) { S.cx = F.x[f]; S.cy = F.y[f]; S.pcx = F.px[f]; S.pcy = F.py[f]; }
+    else if (S.zoom > 1) { S.cx = S.pcx = S.zx; S.cy = S.pcy = S.zy; }
+    else { S.cx = S.pcx = F.w / 2; S.cy = S.pcy = F.h / 2; }
+  }
+  function placeXY(sx, sy) {
+    var F = S.F, kz = S.u * S.zoom, wx, wy;
+    centre();
+    wx = S.cx + (sx - S.cw / S.ps / 2) / kz; wy = S.cy + (sy - S.ch / S.ps / 2) / kz;
+    ptr.x = ((wx % F.w) + F.w) % F.w; ptr.y = ((wy % F.h) + F.h) % F.h;
+  }
+  /* The ground, shown. Where many have passed lately it is more deeply impressed and is drawn darker, and it clears where no one goes. */
+  function ground() {
+    var F = S.F, gw = F.gw, gh = F.gh, g = gw * gh, W = F.W, kz = S.u * S.ps * S.zoom, i, v, d, c2, x0, y0, wp, hp, ix, iy;
+    if (!W) { return; }
+    if (!S.gc || S.gc.width !== gw || S.gc.height !== gh) { S.gc = document.createElement('canvas'); S.gc.width = gw; S.gc.height = gh; S.gx2 = S.gc.getContext('2d'); S.gim = S.gx2.createImageData(gw, gh); S.gt = new Float32Array(g); S.gt2 = new Float32Array(g); }
+    if (S.gink !== S.ink) { c2 = document.createElement('canvas'); c2.width = 1; c2.height = 1; c2 = c2.getContext('2d'); c2.fillStyle = S.ink; c2.fillRect(0, 0, 1, 1); S.grgb = c2.getImageData(0, 0, 1, 1).data; S.gink = S.ink; }
+    S.gt.set(W); blur(S.gt, S.gt2, gw, gh, 2, 2); d = S.gim.data;
+    for (i = 0; i < g; i++) { v = S.gt[i] - 1; d[4 * i] = S.grgb[0]; d[4 * i + 1] = S.grgb[1]; d[4 * i + 2] = S.grgb[2]; d[4 * i + 3] = v > 0 ? 150 * (1 - Math.exp(-v / 6)) : 0; }
+    S.gx2.putImageData(S.gim, 0, 0);
+    vx.globalCompositeOperation = 'source-over'; vx.globalAlpha = 1; vx.imageSmoothingEnabled = true;
+    wp = F.w * kz; hp = F.h * kz; x0 = S.cw / 2 - S.cx * kz; y0 = S.ch / 2 - S.cy * kz;
+    x0 = ((x0 % wp) + wp) % wp - wp; y0 = ((y0 % hp) + hp) % hp - hp;
+    for (iy = y0; iy < S.ch; iy += hp) { for (ix = x0; ix < S.cw; ix += wp) { vx.drawImage(S.gc, ix, iy, wp, hp); } }
+  }
+  /* The ground as one position reads it. Its push is the slope of a single height at each place, made from the ground and its own character.
+     Amber is high ground for it, where it is drawn. Blue is low ground, where it is turned away. Another character reads the same ground differently. */
+  function landscape() {
+    var F = S.F, gw = F.gw, gh = F.gh, g = gw * gh, f = S.landOf, D = F.dr, kz = S.u * S.ps * S.zoom, three = F.k3 > 0, i, v, m, d, a1, b1, a2, b2, a3, b3, x0, y0, wp, hp, ix, iy, ex, ey;
+    if (!D || !(f >= 0 && f < F.n)) { return; }
+    if (!S.lc || S.lc.width !== gw || S.lc.height !== gh) { S.lc = document.createElement('canvas'); S.lc.width = gw; S.lc.height = gh; S.lx2 = S.lc.getContext('2d'); S.lim = S.lx2.createImageData(gw, gh); S.lu = new Float32Array(g); }
+    a1 = (F.c1[f] * D[0] - F.s1[f] * D[1]) * D[6]; b1 = (F.s1[f] * D[0] + F.c1[f] * D[1]) * D[6];
+    a2 = (F.c2[f] * D[2] - F.s2[f] * D[3]) * D[7]; b2 = (F.s2[f] * D[2] + F.c2[f] * D[3]) * D[7];
+    a3 = three ? (F.c3[f] * D[4] - F.s3[f] * D[5]) * D[8] : 0; b3 = three ? (F.s3[f] * D[4] + F.c3[f] * D[5]) * D[8] : 0;
+    m = 1e-9;
+    for (i = 0; i < g; i++) { v = a1 * F.C1[i] + b1 * F.S1[i] + a2 * F.C2[i] + b2 * F.S2[i]; if (three) { v += a3 * F.C3[i] + b3 * F.S3[i]; } S.lu[i] = v; if (v > m) { m = v; } else if (-v > m) { m = -v; } }
+    S.lmax = Math.max(m, (S.lmax || 0) * 0.97); d = S.lim.data;
+    for (i = 0; i < g; i++) {
+      v = S.lu[i] / S.lmax;
+      if (v >= 0) { d[4 * i] = 224; d[4 * i + 1] = 150; d[4 * i + 2] = 40; } else { d[4 * i] = 70; d[4 * i + 1] = 130; d[4 * i + 2] = 215; v = -v; }
+      d[4 * i + 3] = 175 * Math.pow(v, 0.7);
+    }
+    S.lx2.putImageData(S.lim, 0, 0);
+    vx.globalCompositeOperation = 'source-over'; vx.globalAlpha = 1; vx.imageSmoothingEnabled = true;
+    wp = F.w * kz; hp = F.h * kz; x0 = S.cw / 2 - S.cx * kz; y0 = S.ch / 2 - S.cy * kz;
+    x0 = ((x0 % wp) + wp) % wp - wp; y0 = ((y0 % hp) + hp) % hp - hp;
+    for (iy = y0; iy < S.ch; iy += hp) { for (ix = x0; ix < S.cw; ix += wp) { vx.drawImage(S.lc, ix, iy, wp, hp); } }
+    ex = F.x[f] - S.cx; if (ex > F.w / 2) { ex -= F.w; } else if (ex < -F.w / 2) { ex += F.w; }
+    ey = F.y[f] - S.cy; if (ey > F.h / 2) { ey -= F.h; } else if (ey < -F.h / 2) { ey += F.h; }
+    vx.globalAlpha = 0.95; vx.strokeStyle = S.ink; vx.lineWidth = Math.max(1.5, 2 * S.ps);                 /* the one whose reading this is */
+    vx.beginPath(); vx.arc(S.cw / 2 + ex * kz, S.ch / 2 + ey * kz, 11 * S.ps, 0, 6.2832); vx.stroke(); vx.globalAlpha = 1;
+  }
+  /* A kaleidoscope: one twelfth of the picture, the slice from straight right round to a twelfth of a turn, repeated six times round and mirrored. Only the drawing changes, and most of what it shows is not where anything is. */
+  var KAL = null;
+  function kaleido() {
+    var w = S.cw, h = S.ch, cx0 = w / 2, cy0 = h / 2, R = Math.sqrt(cx0 * cx0 + cy0 * cy0) + 2, j;
+    if (!KAL || KAL.cv.width !== w || KAL.cv.height !== h) { KAL = { cv: document.createElement('canvas') }; KAL.cv.width = w; KAL.cv.height = h; KAL.kx = KAL.cv.getContext('2d'); }
+    KAL.kx.globalCompositeOperation = 'copy'; KAL.kx.globalAlpha = 1; KAL.kx.drawImage(V, 0, 0);
+    vx.globalCompositeOperation = 'source-over'; vx.globalAlpha = 1;
+    for (j = 0; j < 12; j++) {
+      vx.save(); vx.translate(cx0, cy0); vx.rotate(Math.floor(j / 2) * Math.PI / 3); if (j % 2) { vx.scale(1, -1); }
+      vx.beginPath(); vx.moveTo(0, 0); vx.arc(0, 0, R, -0.004, Math.PI / 6 + 0.004); vx.closePath(); vx.clip();
+      vx.drawImage(KAL.cv, -cx0, -cy0); vx.restore();
+    }
+  }
+  function wrapd(d, L) { return d > L / 2 ? d - L : d < -L / 2 ? d + L : d; }
+  /* What each bubble holds, for its colour: of the dots inside it, the mean of their places along the rainbow (as Visible light and Shifted
+     by motion show them) and of their characters round the ring of amber, pale and blue, eased over a few frames. Counted again here,
+     where it is drawn, the way the field counts what a bubble holds. Drawn only. */
+  function holds(B) {
+    var F = S.F, n = F.n, w = F.w, h = F.h, hw = w / 2, hh = h / 2, cw = Math.max(1, Math.floor(w / 0.06)), chn = Math.max(1, Math.floor(h / 0.06)), icx = cw / w, icy = chn / h;
+    var nb = B.length, cells = S.hcell, acc = S.hacc, i, j, k, b, x0, x1, y0, y1, l, dx, dy, c, m;
+    if (!cells || cells.length !== cw * chn) { cells = S.hcell = []; for (i = 0; i < cw * chn; i++) { cells.push([]); } }
+    for (i = 0; i < cells.length; i++) { cells[i].length = 0; }
+    if (!acc || acc.length < 4 * nb) { acc = S.hacc = new Float64Array(4 * Math.max(64, nb)); }
+    for (i = 0; i < 4 * nb; i++) { acc[i] = 0; }
+    for (k = 0; k < nb; k++) {      /* each cell lists the bubbles that reach into it */
+      b = B[k];
+      x0 = Math.floor((b.x - b.r) * icx); x1 = Math.floor((b.x + b.r) * icx); y0 = Math.floor((b.y - b.r) * icy); y1 = Math.floor((b.y + b.r) * icy);
+      if (x1 - x0 >= cw) { x0 = 0; x1 = cw - 1; } if (y1 - y0 >= chn) { y0 = 0; y1 = chn - 1; }
+      for (j = y0; j <= y1; j++) { for (i = x0; i <= x1; i++) { cells[((j % chn) + chn) % chn * cw + ((i % cw) + cw) % cw].push(k); } }
+    }
+    for (i = 0; i < n; i++) {
+      x0 = (F.x[i] * icx) | 0; y0 = (F.y[i] * icy) | 0; l = cells[(y0 < chn ? y0 : chn - 1) * cw + (x0 < cw ? x0 : cw - 1)];
+      for (j = 0; j < l.length; j++) {
+        b = B[l[j]];
+        dx = F.x[i] - b.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+        dy = F.y[i] - b.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        if (dx * dx + dy * dy < b.r * b.r) { c = 4 * l[j]; acc[c] += 1; acc[c + 1] += 1 - Math.abs(2 * F.ch[i] - 1); acc[c + 2] += F.c1[i]; acc[c + 3] += F.s1[i]; }
+      }
+    }
+    for (k = 0; k < nb; k++) {
+      b = B[k]; c = 4 * k; m = acc[c];
+      if (!m) { continue; }      /* holding none just now, it keeps the colour it had */
+      if (b.hs === undefined) { b.hs = acc[c + 1] / m; b.hc = acc[c + 2] / m; b.hn = acc[c + 3] / m; }
+      else { b.hs = 0.9 * b.hs + 0.1 * acc[c + 1] / m; b.hc = 0.9 * b.hc + 0.1 * acc[c + 2] / m; b.hn = 0.9 * b.hn + 0.1 * acc[c + 3] / m; }
+    }
+  }
+  var BCS = [], BSN = [];      /* sixteen places round a ring, where its colours are read */
+  (function () { for (var k = 0; k < 16; k++) { BCS.push(Math.cos(k * Math.PI / 8)); BSN.push(Math.sin(k * Math.PI / 8)); } }());
+  function rgbOf(c) { var m = S.rgbc && S.rgbc[c]; if (!m) { m = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(c); m = m ? [+m[1], +m[2], +m[3]] : [232, 240, 247]; (S.rgbc = S.rgbc || {})[c] = m; } return m; }
+  function mixc(a, b, t) { var p = rgbOf(a), q = rgbOf(b); return 'rgb(' + Math.round(q[0] + (p[0] - q[0]) * t) + ',' + Math.round(q[1] + (p[1] - q[1]) * t) + ',' + Math.round(q[2] + (p[2] - q[2]) * t) + ')'; }
+  function bubbles() {
+    var F = S.F, B = F.bub || [], kz = S.u * S.ps * S.zoom, wp = F.w * kz, hp = F.h * kz, i, j, b, X, Y, R, a, k, ox, oy, X1, Y1, now = performance.now(), live = [], seen = {}, top = {}, fams = {}, fid, rec, q, al, dtb, co, ci, fo = S.follow, ovx = 0, ovy = 0, cg = !!vx.createConicGradient;
+    if (!B.length && !S.pops.length && !Object.keys(S.prior).length) { return; }
+    centre();
+    if (fo >= 0 && fo < F.n) { ovx = F.vx[fo]; ovy = F.vy[fo]; }      /* riding along, colours are read as that dot sees them */
+    if (B.length) { holds(B); }
+    vx.save(); vx.globalCompositeOperation = 'source-over'; vx.strokeStyle = S.ink; vx.fillStyle = S.ink; vx.lineWidth = Math.max(1, 1.3 * S.ps);
+    vx.lineJoin = 'round'; vx.font = '600 ' + Math.round(12.5 * S.ps) + 'px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'; vx.textAlign = 'center'; vx.textBaseline = 'bottom';
+    function ring(x0, y0, r, alpha, label, off, col) {
+      for (ox = -1; ox <= 1; ox++) { for (oy = -1; oy <= 1; oy++) {
+        X1 = x0 + ox * wp; Y1 = y0 + oy * hp;
+        if (X1 + r < 0 || X1 - r > S.cw || Y1 + r < 0 || Y1 - r > S.ch) { continue; }
+        vx.beginPath(); vx.arc(X1, Y1, r, 0, 6.2832);                                            /* a dark halo under a light line, so it reads on bright streams and on the ground alike */
+        if (off !== undefined) { vx.setLineDash([0.3927 * r, 0.3927 * r]); vx.lineDashOffset = off; }      /* eight dashes round the ring, halo and line together, so the gaps show */
+        vx.globalAlpha = off !== undefined ? Math.min(1, 0.3 + alpha) * 0.85 : alpha * 0.7; vx.strokeStyle = S.bg; vx.lineWidth = Math.max(off !== undefined ? 5 : 3, (off !== undefined ? 5.5 : 3.5) * S.ps); vx.stroke();
+        vx.globalAlpha = off !== undefined ? Math.min(1, 0.3 + alpha) : alpha; vx.strokeStyle = !col ? S.ink : typeof col === 'string' ? col : cone(col, X1, Y1); vx.lineWidth = Math.max(1.5, (off !== undefined ? 2.4 : 1.3) * S.ps); vx.stroke();      /* dashes a little bolder than a still ring, so they read on bright streams; in the colour of what it holds */
+        if (off !== undefined) { vx.setLineDash([]); vx.lineDashOffset = 0; }
+        if (label) { vx.globalAlpha = Math.min(1, alpha + 0.15); vx.lineWidth = Math.max(3, 3.5 * S.ps); vx.strokeStyle = S.bg; vx.strokeText(label, X1, Y1 - r - 4 * S.ps); vx.fillText(label, X1, Y1 - r - 4 * S.ps); }
+      } }
+    }
+    function sbin(v) { v = (v * NSB) | 0; return v < 0 ? 0 : v >= NSB ? NSB - 1 : v; }
+    /* A ring's colour: the colour of the dots its bubble holds, and on Shifted by motion each of sixteen places round it shifted the way a dot
+       there would be, by how fast that place comes toward or goes away from the place of reading: the ring's going round, as fast as the
+       dots there go round (the speed its dashes show), and the bubble's drift. inner: the line between the halves, going round with the inner half. */
+    function tint(b, inner) {
+      var s0, a, m, k, e1, e2, er, ux, uy, z, out, rr, vt, bx, by;
+      if (b.hs === undefined) { b.col = S.ink; return S.ink; }
+      if (!S.light) {      /* amber, pale and blue: the character its dots share, paler the more mixed they are */
+        a = (Math.atan2(b.hn, b.hc) / 6.283185307 + 1) % 1; m = (Math.sqrt(b.hc * b.hc + b.hn * b.hn) - 0.1) / 0.3; m = m < 0 ? 0 : m > 1 ? 1 : Math.round(m * 8) / 8;
+        b.col = mixc(S.cols[Math.min(NB - 1, (a * NB) | 0)], S.ink, m); return b.col;
+      }
+      s0 = 0.22 + 0.56 * b.hs;
+      if (S.light !== 2) { b.col = S.spec[sbin(s0)]; return b.col; }
+      bx = wrapd(b.x - S.cx, F.w); by = wrapd(b.y - S.cy, F.h);
+      er = Math.sqrt(bx * bx + by * by) + 1e-4; z = ((b.dvx - ovx) * bx + (b.dvy - ovy) * by) / (er * SHIFTC); z = z > 1 ? 1 : z < -1 ? -1 : z;
+      b.col = S.spec[sbin(s0 + 0.5 * z)];      /* its middle's colour, for a pop and where a ring cannot be shaded round */
+      rr = inner ? 0.7071 * b.r : b.r; vt = inner ? (b.omi || 0) * 0.48 * b.r : (b.om || 0) * 1.21 * b.r;
+      out = [];
+      for (k = 0; k < 16; k++) {
+        e1 = bx + rr * BCS[k]; e2 = by + rr * BSN[k]; er = Math.sqrt(e1 * e1 + e2 * e2) + 1e-4;
+        ux = b.dvx - vt * BSN[k] - ovx; uy = b.dvy + vt * BCS[k] - ovy;
+        z = (ux * e1 + uy * e2) / (er * SHIFTC); z = z > 1 ? 1 : z < -1 ? -1 : z;
+        out.push(S.spec[sbin(s0 + 0.5 * z)]);
+      }
+      for (k = 1; k < 16 && out[k] === out[0]; k++) { }
+      if (k === 16) { return out[0]; }      /* all one colour: no need to shade it round */
+      out.mid = b.col; return out;
+    }
+    function cone(st, x, y) { var g, k; if (!cg) { return st.mid; } g = vx.createConicGradient(0, x, y); for (k = 0; k < st.length; k++) { g.addColorStop(k / st.length, st[k]); } g.addColorStop(1, st[0]); return g; }
+    function shadow(x0, y0, r, col, alpha, label) {      /* a prior ring: a thin line in its generation's colour over a dark halo; the first ring's terms below it */
+      for (ox = -1; ox <= 1; ox++) { for (oy = -1; oy <= 1; oy++) {
+        X1 = x0 + ox * wp; Y1 = y0 + oy * hp;
+        if (X1 + r < 0 || X1 - r > S.cw || Y1 + r < 0 || Y1 - r > S.ch) { continue; }
+        vx.beginPath(); vx.arc(X1, Y1, r, 0, 6.2832);
+        vx.globalAlpha = alpha * 0.75; vx.strokeStyle = S.bg; vx.lineWidth = Math.max(4, 4.5 * S.ps); vx.stroke();
+        vx.globalAlpha = alpha; vx.strokeStyle = col; vx.lineWidth = Math.max(1.8, 2 * S.ps); vx.stroke();
+        if (label) { vx.textBaseline = 'top'; vx.globalAlpha = Math.min(1, alpha + 0.15); vx.lineWidth = Math.max(3, 3.5 * S.ps); vx.strokeStyle = S.bg; vx.strokeText(label, X1, Y1 + r + 4 * S.ps); vx.fillStyle = col; vx.fillText(label, X1, Y1 + r + 4 * S.ps); vx.fillStyle = S.ink; vx.textBaseline = 'bottom'; }
+      } }
+    }
+    /* What each family was: the ring of the bubble it broke from, and each later break's rings inside it, the newest strongest, each generation
+       a step further round the colour ring. They go wherever the family's middle goes, and fade with it when it is gone. Drawn only. */
+    for (i = 0; i < B.length; i++) { b = B[i]; if (!b.fam) { continue; } q = fams[b.fam]; if (!q) { q = fams[b.fam] = { x0: b.x, y0: b.y, sx: 0, sy: 0, n: 0 }; } q.sx += wrapd(b.x - q.x0, F.w); q.sy += wrapd(b.y - q.y0, F.h); q.n += 1; }
+    for (fid in S.prior) {
+      rec = S.prior[fid]; q = fams[fid];
+      if (q) { rec.mx = q.x0 + q.sx / q.n; rec.my = q.y0 + q.sy / q.n; rec.gone = 0; } else if (!rec.gone) { rec.gone = now; }
+      k = rec.gone ? (now - rec.gone) / 650 : 0;
+      if (k >= 1) { delete S.prior[fid]; continue; }
+      for (j = 0; j < rec.rings.length; j++) {
+        q = rec.rings[j];
+        X = S.cw / 2 + wrapd(rec.mx + q.dx - S.cx, F.w) * kz; Y = S.ch / 2 + wrapd(rec.my + q.dy - S.cy, F.h) * kz;
+        al = 0.85 * Math.pow(0.72, rec.gen - 1 - q.gen) * (1 - k);
+        shadow(X, Y, q.r * kz, S.cols[Math.floor((q.gen % 3) / 3 * NB)], al, q.label);
+      }
+    }
+    for (i = 0; i < B.length; i++) { b = B[i]; if (b.line) { Y = wrapd(b.y - S.cy, F.h); if (top[b.g] === undefined || Y < seen[b.g]) { top[b.g] = i; seen[b.g] = Y; } } }
+    for (i = 0; i < B.length; i++) {
+      b = B[i]; a = b.hold === undefined ? 1 : Math.max(0, Math.min(1, b.hold, b.holdIn));
+      X = S.cw / 2 + wrapd(b.x - S.cx, F.w) * kz; Y = S.ch / 2 + wrapd(b.y - S.cy, F.h) * kz; R = b.r * kz;
+      if (b.tp === undefined) { b.tp = F.t; b.ang = 0; b.angi = 0; b.lx = b.x; b.ly = b.y; b.dvx = 0; b.dvy = 0; }      /* how far each ring has gone round since it was dropped, as the field's time passes */
+      dtb = F.t - b.tp;
+      if (dtb > 1e-9) { b.dvx = 0.7 * b.dvx + 0.3 * wrapd(b.x - b.lx, F.w) / dtb; b.dvy = 0.7 * b.dvy + 0.3 * wrapd(b.y - b.ly, F.h) / dtb; b.lx = b.x; b.ly = b.y; }      /* and how it drifts, for its colour */
+      b.ang += (b.om || 0) * dtb; b.angi += (b.omi || 0) * dtb; b.tp = F.t;
+      co = tint(b, 0); ci = tint(b, 1);
+      if (b.line) { ring(X, Y, R, 0.25 + 0.6 * Math.sqrt(a), top[b.g] === i ? b.label + (b.word === 'frac' ? '' : b.word === 'angle' ? ', angled ' + b.deg + '\u00b0' : ' in a ' + (b.word || 'line')) : null, -b.ang * R, co); }      /* a shape is labelled once, over its highest piece */
+      else { ring(X, Y, R, 0.25 + 0.6 * Math.sqrt(a), b.label + (b.held ? (b.hd > 0 ? ' \u21bb' : b.hd < 0 ? ' \u21ba' : '') : b.hd > 0 ? ' \u21bb\u21ba' : b.hd < 0 ? ' \u21ba\u21bb' : ''), -b.ang * R, co); }
+      ring(X, Y, R * 0.7071, 0.15 + 0.35 * Math.sqrt(a), null, -b.angi * R * 0.7071, ci);      /* the line between the halves, its dashes going round with the inner half */
+    }
+    for (j = 0; j < S.pops.length; j++) {
+      b = S.pops[j]; k = (now - b.t0) / 650;
+      if (k >= 1) { continue; }
+      live.push(b);
+      X = S.cw / 2 + wrapd(b.x - S.cx, F.w) * kz; Y = S.ch / 2 + wrapd(b.y - S.cy, F.h) * kz; R = b.r * kz * (1 + 0.7 * k);
+      ring(X, Y, R, 0.85 * (1 - k), null, undefined, b.col);
+    }
+    S.pops = live;
+    vx.restore();
+  }
+  function popBubble(b, split) {
+    var B = S.F.bub || [], i = B.indexOf(b);
+    if (i < 0) { return; }
+    B.splice(i, 1); S.pops.push({ x: b.x, y: b.y, r: b.r, t0: performance.now(), col: b.col });
+    if (!split) { plink(b); }      /* a pop is heard as a soft pluck; a piece that breaks into three is replaced, not popped */
+  }
+  function popAll() {        /* every bubble at once */
+    var B = S.F.bub || [], n = B.length;
+    if (!n) { say('There are no bubbles to pop.', 1800); return; }
+    while (B.length) { popBubble(B[B.length - 1]); }
+    say(n === 1 ? 'Popped the bubble.' : 'Popped all ' + n + ' bubbles.', 1800); status(); if (S.paused) { show(); }
+  }
+  function ageBubbles() {        /* a bubble lasts as long as its heading holds; a fracturing one breaks into finer pieces instead of popping */
+    var F = S.F, B = (F.bub || []).slice(), i;
+    for (i = 0; i < B.length; i++) {
+      if (F.bub.indexOf(B[i]) < 0) { continue; }      /* gone already, with its family */
+      if (F.t - B[i].born > BUBGRACE && B[i].hold !== undefined && Math.min(B[i].hold, B[i].holdIn) < 0) { if (B[i].frac) { fracture(B[i]); } else { popBubble(B[i]); } }
+    }
+  }
+  function fracture(b) {        /* the parallel holds while the surface fractures: every piece of its family breaks into three, a third of its room each, holding the same share and one parallel between them all */
+    var F = S.F, B = F.bub, fam = [], i, j, p, rf, want, id, nb, a0, pq, lab, rec, mx, my;
+    if (b.fam) { for (i = 0; i < B.length; i++) { if (B[i].fam === b.fam) { fam.push(B[i]); } } } else { fam.push(b); }
+    rf = b.r / Math.sqrt(3); want = b.k * F.n * Math.PI * rf * rf / (F.w * F.h);
+    if (want < 8 || B.length + 2 * fam.length > BUBPIECES) { for (i = 0; i < fam.length; i++) { popBubble(fam[i]); } return; }      /* its pieces would hold fewer than eight, or there would be too many at once: it pops */
+    if (b.fam) { id = b.fam; } else { S.famid += 1; id = 'f' + S.famid; }
+    rec = S.prior[id] || (S.prior[id] = { rings: [], gen: 0, mx: 0, my: 0, gone: 0 });      /* what the family was, kept to be drawn: each breaking piece's ring, from the family's middle */
+    mx = 0; my = 0; for (i = 0; i < fam.length; i++) { mx += wrapd(fam[i].x - fam[0].x, F.w); my += wrapd(fam[i].y - fam[0].y, F.h); }
+    mx = fam[0].x + mx / fam.length; my = fam[0].y + my / fam.length;
+    for (i = 0; i < fam.length; i++) { rec.rings.push({ dx: wrapd(fam[i].x - mx, F.w), dy: wrapd(fam[i].y - my, F.h), r: fam[i].r, gen: rec.gen, label: rec.gen === 0 && i === 0 ? fam[i].label : '' }); }
+    rec.gen += 1;
+    if (F.fam) { delete F.fam[id]; }      /* a new parallel to hold */
+    pq = b.label.split('/'); lab = (3 * +pq[0]) + '/' + (3 * +pq[1]);      /* the same share in finer terms: 1/2 becomes 3/6 */
+    a0 = Math.random() * 2.0944;
+    for (i = 0; i < fam.length; i++) {
+      p = fam[i]; popBubble(p, 1);
+      for (j = 0; j < 3; j++) {
+        nb = { x: p.x + 2 * p.r / 3 * Math.cos(a0 + j * 2.0944), y: p.y + 2 * p.r / 3 * Math.sin(a0 + j * 2.0944), r: rf, k: p.k, label: lab, born: F.t, c: 0, want: 0, m: 0, hd: p.hd, g: id, fam: id, held: 1, frac: 1, line: 3 * fam.length, word: 'frac' };
+        nb.x -= Math.floor(nb.x / F.w) * F.w; nb.y -= Math.floor(nb.y / F.h) * F.h;
+        B.push(nb);
+      }
+    }
+    status();
+  }
+  function shapeOf() {        /* the shape a touch lays: one round bubble; the share's first number along and its second across; or a stack of 4, 3 and 2 */
+    var pq = BUBN[S.bubk].split('/'), p = +pq[0], q = +pq[1];
+    if (S.shape === 3) { return { p: 5, q: 5, n: 9, word: 'angle', deg: BANG[S.angle] }; }
+    if (S.shape === 2) { return { p: 4, q: 3, n: 9, word: 'stack', rows: [4, 3, 2] }; }
+    if (S.shape === 1 && Math.max(p, q) > 9) { return { p: 1, q: 1, n: 1, word: '', round: 1 }; }      /* 81 pieces in a row would be longer than the field is tall: it drops round */
+    return S.shape === 1 ? { p: p, q: q, n: p * q, word: p === 1 || q === 1 ? 'line' : p === q ? 'square' : 'block' } : { p: 1, q: 1, n: 1, word: '' };
+  }
+  function sayCirc() {
+    say(S.circ === 1 ? 'Set ways: a bubble is given a way round when it is dropped, from how the dots there were turning. Its inner part goes the other way, and the pieces of a shape are set going opposite ways to their neighbours, like gears. It pops when either part is going round more against its way than with it. This is for the bubbles you drop next.'
+      : S.circ === 0 ? 'Held parallel: a bubble has no way round of its own. It goes the way its dots are going round together, the parallel they hold between them, and any dot that strays is nudged back. It pops when their straying outweighs what they share. This is for the bubbles you drop next.'
+      : 'Held, fracturing: a bubble goes the way its dots are going round together, and any dot that strays is nudged back. When their straying outweighs what they share, it breaks into three smaller bubbles that keep its share and go round together, its number written in finer terms (1/2 becomes 3/6). Its ring stays behind as a faint coloured shadow, and each later break leaves smaller rings inside it. It pops only when the pieces would be too small to hold eight dots. This is for the bubbles you drop next.', 8000);
+  }
+  function sayShape() {
+    var g = S.circ !== 1 ? ' Each finds its own way round.' : S.shape === 3 ? ' Along each arm they are set going round opposite ways, like gears.' : S.shape === 2 ? ' Along each row they are set going round opposite ways, like gears.' : ' Neighbours are set going round opposite ways, like gears.';
+    say(S.shape === 3 ? 'Angled: a touch lays a corner with two arms of four little bubbles, opening at ' + BANG[S.angle] + '\u00b0 (0 changes the angle). Each holds the share on its own.' + g
+      : S.shape === 2 ? 'Stacked: a touch lays rows of 4, 3 and 2 little bubbles, standing on the bottom row. Each holds the share on its own.' + g
+      : S.shape === 1 ? 'Shaped by the share: a touch lays little bubbles by the share\u2019s two numbers, the first along the way the dots are moving and the second across, so 9/1 is a line of nine and 3/3 a square. A share with a number over 9 drops one round bubble. Each holds the share on its own.' + g
+      : 'Round: one bubble at a touch.', S.shape ? 6000 : 1800);
+  }
+  function bubbleAt(wx, wy) {         /* a touch on a bubble pops it; anywhere else drops a new one, or a shape of them */
+    var F = S.F, B = F.bub || (F.bub = []), i, b, dx, dy, gs = [], sh = shapeOf(), rp, mx = 0, my = 0, ang, ca, sa, ia, ib, a0, b0, al, ac, px, py, lead = null, nb, cells, n0, tol = 22 / (S.u * S.zoom), hit = null, hd = 1e9, dd;
+    for (i = B.length - 1; i >= 0; i--) {        /* a touch inside a bubble, or within a finger's width of a small one, pops the nearest */
+      b = B[i]; dx = wrapd(wx - b.x, F.w); dy = wrapd(wy - b.y, F.h); dd = Math.sqrt(dx * dx + dy * dy);
+      if (dd < Math.max(b.r, tol) && dd - b.r < hd) { hd = dd - b.r; hit = b; }
+    }
+    if (hit) { popBubble(hit); say('Popped.', 1200); status(); if (S.paused) { show(); } return; }
+    for (i = 0; i < B.length; i++) { if (gs.indexOf(B[i].g) < 0) { gs.push(B[i].g); } }
+    if (gs.length >= BUBMAX) { for (i = B.length - 1; i >= 0; i--) { if (B[i].g === gs[0]) { popBubble(B[i]); } } }      /* eight at once, a line counting as one: the oldest goes */
+    S.bubg += 1; n0 = B.length;
+    if (sh.n < 2) { B.push({ x: wx, y: wy, r: BUBR, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, g: S.bubg }); }
+    else if (sh.word === 'angle') {        /* an angle: a corner with an arm of four along the top of the screen and an arm of four going down the side at the chosen angle from it, each a fifth of a round bubble's room */
+      rp = BUBR / Math.sqrt(5); ang = sh.deg * Math.PI / 180; ca = Math.cos(ang); sa = Math.sin(ang);
+      al = wx - 20 * rp * (1 + ca) / 9; ac = wy - 20 * rp * sa / 9;      /* the corner, set so the nine sit round the touch; the field's y runs down the screen */
+      cells = [[0, 0, 0]]; for (ia = 1; ia <= 4; ia++) { cells.push([ia, 0, ia]); cells.push([ia * ca, ia * sa, ia]); }
+      for (i = 0; i < cells.length; i++) {
+        px = al + 2 * rp * cells[i][0]; py = ac + 2 * rp * cells[i][1]; px -= Math.floor(px / F.w) * F.w; py -= Math.floor(py / F.h) * F.h;
+        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, g: S.bubg, line: sh.n, word: sh.word, deg: sh.deg };
+        if (lead) { nb.lead = lead; nb.par = cells[i][2] % 2 ? -1 : 1; } else { lead = nb; }      /* the corner first; opposite ways along each arm from it, like gears */
+        B.push(nb);
+      }
+    }
+    else if (sh.rows) {        /* a stack: rows of little bubbles standing on the base at the bottom of the screen, each row nested in the grooves of the one below, each the widest row's piece of a round bubble's room */
+      rp = BUBR / Math.sqrt(sh.rows[0]); cells = [];
+      for (ia = 0; ia < sh.rows.length; ia++) { for (ib = 0; ib < sh.rows[ia]; ib++) { cells.push([ia, ib]); } }
+      a0 = Math.floor((sh.rows.length - 1) / 2); b0 = Math.floor((sh.rows[a0] - 1) / 2);      /* the middle of the middle row first */
+      for (i = 0; i < cells.length; i++) { if (cells[i][0] === a0 && cells[i][1] === b0) { cells.unshift(cells.splice(i, 1)[0]); break; } }
+      for (i = 0; i < cells.length; i++) {
+        ia = cells[i][0]; ib = cells[i][1];
+        px = wx + (ib - (sh.rows[ia] - 1) / 2) * 2 * rp; py = wy + ((sh.rows.length - 1) / 2 - ia) * Math.sqrt(3) * rp;      /* the field's y runs down the screen, so the base is lowest */
+        px -= Math.floor(px / F.w) * F.w; py -= Math.floor(py / F.h) * F.h;
+        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, g: S.bubg, line: sh.n, word: sh.word };
+        if (lead) { nb.lead = lead; nb.par = (ib % 2) === (b0 % 2) ? 1 : -1; } else { lead = nb; }      /* opposite ways along each row, like gears; above, each agrees with one of the two below */
+        B.push(nb);
+      }
+    }
+    else {        /* a shape: the share's first number of little bubbles along, its second across, touching, each the larger number's piece of a round bubble's room */
+      rp = BUBR / Math.sqrt(Math.max(sh.p, sh.q));
+      for (i = 0; i < F.n; i++) { dx = wrapd(F.x[i] - wx, F.w); dy = wrapd(F.y[i] - wy, F.h); if (dx * dx + dy * dy < BUBR * BUBR) { mx += F.vx[i]; my += F.vy[i]; } }
+      ang = mx * mx + my * my > 1e-12 ? Math.atan2(my, mx) : 0; ca = Math.cos(ang); sa = Math.sin(ang);      /* along the way things are moving there */
+      a0 = Math.floor((sh.p - 1) / 2); b0 = Math.floor((sh.q - 1) / 2); cells = [[a0, b0]];
+      for (ia = 0; ia < sh.p; ia++) { for (ib = 0; ib < sh.q; ib++) { if (ia !== a0 || ib !== b0) { cells.push([ia, ib]); } } }
+      for (i = 0; i < cells.length; i++) {
+        ia = cells[i][0]; ib = cells[i][1]; al = (ia - (sh.p - 1) / 2) * 2 * rp; ac = (ib - (sh.q - 1) / 2) * 2 * rp;
+        px = wx + al * ca - ac * sa; py = wy + al * sa + ac * ca; px -= Math.floor(px / F.w) * F.w; py -= Math.floor(py / F.h) * F.h;
+        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, g: S.bubg, line: sh.n, word: sh.word };
+        if (lead) { nb.lead = lead; nb.par = (Math.abs(ia - a0) + Math.abs(ib - b0)) % 2 ? -1 : 1; } else { lead = nb; }      /* the middle one first: the others alternate from it, like gears on a checkerboard */
+        B.push(nb);
+      }
+    }
+    if (S.circ !== 1) { for (i = n0; i < B.length; i++) { B[i].held = 1; B[i].lead = null; if (S.circ === 2) { B[i].frac = 1; } } }      /* a held parallel: no way given, no neighbour told anything */
+    status(); if (S.paused) { show(); }
+  }
+  function show() {
+    vx.globalCompositeOperation = 'source-over'; vx.globalAlpha = 1; vx.drawImage(T, 0, 0);
+    if (S.wear) { ground(); }
+    if (S.land) { landscape(); }
+    if (S.dark) {                                  /* a soft glow: the picture laid over itself, blurred */
+      bx.globalCompositeOperation = 'copy'; bx.drawImage(T, 0, 0, B.width, B.height);
+      vx.globalCompositeOperation = 'lighter'; vx.globalAlpha = 0.55; vx.imageSmoothingEnabled = true; vx.drawImage(B, 0, 0, S.cw, S.ch);
+    }
+    bubbles();
+    if (S.follow >= 0) {                           /* mark the position the picture is read from */
+      vx.globalCompositeOperation = 'source-over'; vx.globalAlpha = 0.9; vx.strokeStyle = S.ink; vx.lineWidth = Math.max(1, 1.5 * S.ps);
+      vx.beginPath(); vx.arc(S.cw / 2, S.ch / 2, 9 * S.ps, 0, 6.2832); vx.stroke();
+    }
+    if (S.kal) { kaleido(); }
+  }
+  /* Visible light. Each character has a place in the spectrum, and motion can shift it: what approaches the place of reading turns blue, what recedes turns red. */
+  function spectral(s, dim) {
+    var wl = 400 + 300 * s, r = 0, g = 0, b = 0, k;
+    if (wl < 440) { r = (440 - wl) / 60 * 0.9; b = 1; } else if (wl < 490) { g = (wl - 440) / 50; b = 1; } else if (wl < 510) { g = 1; b = (510 - wl) / 20; }
+    else if (wl < 580) { r = (wl - 510) / 70; g = 1; } else if (wl < 645) { r = 1; g = (645 - wl) / 65; } else { r = 1; }
+    k = (wl < 420 ? 0.5 + 0.5 * (wl - 400) / 20 : wl > 680 ? 0.6 + 0.4 * (700 - wl) / 20 : 1) * dim;
+    return 'rgb(' + Math.round(255 * Math.pow(r * k, 0.8)) + ',' + Math.round(255 * Math.pow(g * k, 0.8)) + ',' + Math.round(255 * Math.pow(b * k, 0.8)) + ')';
+  }
+  function shade(cx, cy) {                       /* sort the positions by the colour each shows from where it is read */
+    var F = S.F, n = F.n, w = F.w, h = F.h, hw = w / 2, hh = h / 2, i, b, ex, ey, r, z, s, f = S.follow, ovx = f >= 0 && f < n ? F.vx[f] : 0, ovy = f >= 0 && f < n ? F.vy[f] : 0, shift = S.light === 2, st, bk;
+    if (!S.bk) { S.bk = new Uint8Array(CAP); S.ord2 = new Int32Array(CAP); S.st2 = new Int32Array(NSB + 1); S.fill2 = new Int32Array(NSB); }
+    st = S.st2; bk = S.bk;
+    for (b = 0; b <= NSB; b++) { st[b] = 0; }
+    for (i = 0; i < n; i++) {
+      s = 0.22 + 0.56 * (1 - Math.abs(2 * F.ch[i] - 1));             /* character runs round a ring, so it goes up the spectrum and back */
+      if (shift) {
+        ex = F.x[i] - cx; if (ex > hw) { ex -= w; } else if (ex < -hw) { ex += w; }
+        ey = F.y[i] - cy; if (ey > hh) { ey -= h; } else if (ey < -hh) { ey += h; }
+        r = Math.sqrt(ex * ex + ey * ey) + 1e-4;
+        z = ((F.vx[i] - ovx) * ex + (F.vy[i] - ovy) * ey) / (r * SHIFTC);      /* how fast it is coming or going, as seen from the place of reading */
+        if (z > 1) { z = 1; } else if (z < -1) { z = -1; }
+        s += 0.5 * z;
+      }
+      b = (s * NSB) | 0; if (b < 0) { b = 0; } else if (b >= NSB) { b = NSB - 1; }
+      bk[i] = b; st[b + 1] += 1;
+    }
+    for (b = 0; b < NSB; b++) { st[b + 1] += st[b]; S.fill2[b] = st[b]; }
+    for (i = 0; i < n; i++) { S.ord2[S.fill2[bk[i]]++] = i; }
+  }
+  function paint() {
+    var F = S.F, kz = S.u * S.ps * S.zoom, b, q, i, ax, ay, ex, ey, x1, y1, w = F.w, h = F.h, hw = w / 2, hh = h / 2, ox = S.cw / 2, oy = S.ch / 2, cw = S.cw + 30, ch = S.ch + 30;
+    centre();
+    var cx = S.cx, cy = S.cy, pcx = S.pcx, pcy = S.pcy;
+    tx.globalCompositeOperation = 'source-over'; tx.globalAlpha = S.long ? 0.04 : 0.085; tx.fillStyle = S.bg; tx.fillRect(0, 0, S.cw, S.ch);
+    /* finish the fading exactly, so that no ghost of an old path is kept: one step toward the ground, then held at it */
+    tx.globalAlpha = 1; tx.fillStyle = 'rgb(1,1,1)';
+    tx.globalCompositeOperation = S.dark ? 'difference' : 'lighter'; tx.fillRect(0, 0, S.cw, S.ch);
+    tx.fillStyle = S.bg; tx.globalCompositeOperation = S.dark ? 'lighten' : 'darken'; tx.fillRect(0, 0, S.cw, S.ch);
+    tx.globalCompositeOperation = S.dark ? 'lighter' : 'multiply'; tx.globalAlpha = (S.dark ? 0.5 : 0.4) * [1, 0.55, 0.3][S.faint || 0];
+    tx.lineWidth = Math.max(1, 1.15 * S.ps) * (S.zoom > 1 ? 1.7 : 1); tx.lineCap = 'round';
+    var order = S.order, starts = S.starts, cols = S.cols, nb = NB;
+    if (S.light) { shade(cx, cy); order = S.ord2; starts = S.st2; cols = S.spec; nb = NSB; }
+    for (b = 0; b < nb; b++) {
+      tx.strokeStyle = cols[b]; tx.beginPath();
+      for (q = starts[b]; q < starts[b + 1]; q++) {
+        i = order[q];
+        ex = F.x[i] - cx; if (ex > hw) { ex -= w; } else if (ex < -hw) { ex += w; }
+        ey = F.y[i] - cy; if (ey > hh) { ey -= h; } else if (ey < -hh) { ey += h; }
+        x1 = ox + ex * kz; y1 = oy + ey * kz;
+        if (x1 < -30 || x1 > cw || y1 < -30 || y1 > ch) { continue; }
+        ax = F.px[i] - pcx; if (ax > hw) { ax -= w; } else if (ax < -hw) { ax += w; }
+        ay = F.py[i] - pcy; if (ay > hh) { ay -= h; } else if (ay < -hh) { ay += h; }
+        if (ex - ax > hw || ax - ex > hw || ey - ay > hh || ay - ey > hh) { continue; }
+        tx.moveTo(ox + ax * kz, oy + ay * kz); tx.lineTo(x1, y1);
+      }
+      tx.stroke();
+    }
+    show();
+  }
+  function mood() {
+    var t = S.F.tc, c = Math.cos(drift1(S.F));
+    return c > 0.45 ? 'each dot is drawn toward dots like itself, so they gather' : c < -0.25 ? 'each dot is drawn after dots unlike itself, so they stream' : 'between gathering and streaming';
+  }
+  /* Sound. The bubbles sound their shares against a tone that stands for the whole. Each clump of dots sounds a note of its colour, and the
+     streaming between them is a rush of air. */
+  var A = { ctx: null, on: false, kind: 0, level: 0.22, master: null, bus: null, voices: [], windGain: null, windFilt: null, count: 0, delay: null, bv: [], whole: null, wave: null, plucks: 0, pluckT: 0, wholeOn: true, bvoice: 0, waves: [], lastL: 0, strikes: 0, strikeT: 0 };
+  var OPT = { echo: 50 };
+  var WHOLE = 220;      /* the whole's tone, in Hz: every share is heard against it */
+  function rootMul() { return 1; }      /* the clumps' ring of pitch stays on A */
+  /* Colour runs round a ring, so pitch does too: each tone is five parts an octave apart under a fixed bell, and going once round arrives back where it began. */
+  function pitch(v, u, now, how) {
+    var k, f, w, rm = rootMul();
+    for (k = 0; k < 5; k++) {
+      f = 55 * rm * Math.pow(2, u + k); w = Math.exp(-0.5 * Math.pow(Math.log(f / 250) / Math.LN2 / 0.85, 2));
+      if (how === 0) { v.os[k].frequency.setValueAtTime(f, now); v.pg[k].gain.setValueAtTime(w, now); v.bp[k].frequency.setValueAtTime(f, now); v.bg[k].gain.setValueAtTime(w, now); }
+      else { v.os[k].frequency.setTargetAtTime(f, now, how); v.pg[k].gain.setTargetAtTime(w, now, how); v.bp[k].frequency.setTargetAtTime(f, now, how); v.bg[k].gain.setTargetAtTime(w, now, how); }
+    }
+    v.u = u;
+  }
+  function audioStart() {
+    var AC = window.AudioContext || window.webkitAudioContext, c, i, k, o, gk, v, comp, delay, fb, lp, wet, len, buf, d, src, lp2;
+    if (!AC) { return false; }
+    c = new AC(); A.ctx = c;
+    comp = c.createDynamicsCompressor(); comp.connect(c.destination); A.comp = comp;
+    A.master = c.createGain(); A.master.gain.value = 0; A.master.connect(comp);
+    A.bus = c.createGain(); A.bus.connect(A.master);
+    delay = c.createDelay(1); fb = c.createGain(); lp = c.createBiquadFilter(); wet = c.createGain();      /* a soft echo, for a sense of space */
+    A.delay = delay; A.fb = fb; A.wet = wet; delay.delayTime.value = 0.33; fb.gain.value = 0.38; lp.type = 'lowpass'; lp.frequency.value = 1600; wet.gain.value = 0.35;
+    A.bus.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay); lp.connect(wet); wet.connect(A.master);
+    len = Math.floor(c.sampleRate * 2); buf = c.createBuffer(1, len, c.sampleRate); d = buf.getChannelData(0); A.noise = buf;
+    for (i = 0; i < len; i++) { d[i] = Math.random() * 2 - 1; }
+    src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+    for (i = 0; i < 8; i++) {
+      v = { os: [], pg: [], bp: [], bg: [], og: c.createGain(), ag: c.createGain(), g: c.createGain(), pan: c.createStereoPanner ? c.createStereoPanner() : null, x: 0, y: 0, u: 0, active: false };
+      v.g.gain.value = 0; v.og.gain.value = 1; v.ag.gain.value = 0; v.og.connect(v.g); v.ag.connect(v.g);
+      for (k = 0; k < 5; k++) {
+        o = c.createOscillator(); o.type = 'sine'; gk = c.createGain(); gk.gain.value = 0; o.connect(gk); gk.connect(v.og); o.start(); v.os.push(o); v.pg.push(gk);
+        o = c.createBiquadFilter(); o.type = 'bandpass'; o.frequency.value = 220; o.Q.value = 18; gk = c.createGain(); gk.gain.value = 0;       /* the same air, narrowed to a pitch */
+        src.connect(o); o.connect(gk); gk.connect(v.ag); v.bp.push(o); v.bg.push(gk);
+      }
+      if (v.pan) { v.g.connect(v.pan); v.pan.connect(A.bus); } else { v.g.connect(A.bus); }
+      A.voices.push(v);
+    }
+    /* the bubbles' timbre: a reed-like tone, its upper parts strong enough that a low note is heard on a small speaker */
+    (function () { var n = 24, re = new Float32Array(n + 1), im = new Float32Array(n + 1), hh; for (hh = 1; hh <= n; hh++) { im[hh] = Math.pow(hh, -1.25) * (hh % 2 ? 1 : 0.7); } A.wave = c.createPeriodicWave(re, im); }());
+    (function () {        /* glass, nearly pure; a bowed string's full row of parts (the choir and plucked strings use it too); a kazoo's bright row; a harmonica's reedy one; a fork's pure tone */
+      var n = 24, re = new Float32Array(n + 1), im = new Float32Array(n + 1), im2 = new Float32Array(n + 1), im3 = new Float32Array(n + 1), im4 = new Float32Array(n + 1), im5 = new Float32Array(n + 1),
+        gl = [0, 1, 0.18, 0.1, 0.04, 0.02], hm = [0, 1, 0.7, 0.55, 0.45, 0.3, 0.22, 0.15, 0.1, 0.07, 0.05, 0.035, 0.025], hh;
+      for (hh = 1; hh <= n; hh++) { im[hh] = gl[hh] || 0; im2[hh] = 1 / hh; im3[hh] = Math.pow(hh, -0.6); im4[hh] = hm[hh] || 0.02 / hh; }
+      im5[1] = 1; im5[2] = 0.02;
+      A.waves = [A.wave, c.createPeriodicWave(re, im), c.createPeriodicWave(re, im2), c.createPeriodicWave(re, im3), c.createPeriodicWave(re, im4), c.createPeriodicWave(re, im5)];
+      function shaper(k) { var m = 1024, a = new Float32Array(m), i, x; for (i = 0; i < m; i++) { x = i / (m - 1) * 2 - 1; a[i] = Math.tanh(k * x) / Math.tanh(k); } return a; }
+      A.curves = { hard: shaper(3.2), soft: shaper(1.6) };      /* the kazoo's buzz and the harmonica's rasp */
+      (function () { var m = 64, re6 = new Float32Array(m + 1), im6 = new Float32Array(m + 1), h; for (h = 1; h <= m; h++) { im6[h] = Math.pow(h, -0.35); } A.waves.push(c.createPeriodicWave(re6, im6)); }());      /* a jaw harp's tongue: a narrow pulse of air, its parts falling away only slowly */
+    }());
+    /* the whole: the tone every bubble's share is heard against, sounding while there are bubbles. A soft hum that breathes: two nearly pure tones a
+       hair apart, one to each side, through a gentle filter, swelling and ebbing about every nine seconds. */
+    (function () { var re = new Float32Array(4), im = new Float32Array(4); im[1] = 1; im[2] = 0.15; im[3] = 0.04; A.softw = c.createPeriodicWave(re, im); }());
+    A.whole = { o: c.createOscillator(), o2: c.createOscillator(), f: c.createBiquadFilter(), g: c.createGain(), b: c.createGain(), lfo: c.createOscillator(), ld: c.createGain(),
+      p1: c.createStereoPanner ? c.createStereoPanner() : null, p2: c.createStereoPanner ? c.createStereoPanner() : null };
+    A.whole.o.setPeriodicWave(A.softw); A.whole.o2.setPeriodicWave(A.softw); A.whole.o.frequency.value = WHOLE; A.whole.o2.frequency.value = WHOLE; A.whole.o.detune.value = -1.5; A.whole.o2.detune.value = 1.5;
+    A.whole.f.type = 'lowpass'; A.whole.f.frequency.value = 900; A.whole.f.Q.value = 0.3; A.whole.g.gain.value = 0; A.whole.b.gain.value = 1;
+    A.whole.lfo.frequency.value = 0.11; A.whole.ld.gain.value = 0.45; A.whole.lfo.connect(A.whole.ld); A.whole.ld.connect(A.whole.b.gain);      /* the breath: 0.55 to 1.45 of its level */
+    if (A.whole.p1) { A.whole.p1.pan.value = -0.5; A.whole.p2.pan.value = 0.5; A.whole.o.connect(A.whole.p1); A.whole.o2.connect(A.whole.p2); A.whole.p1.connect(A.whole.f); A.whole.p2.connect(A.whole.f); }
+    else { A.whole.o.connect(A.whole.f); A.whole.o2.connect(A.whole.f); }
+    A.whole.f.connect(A.whole.g); A.whole.g.connect(A.whole.b); A.whole.b.connect(A.bus); A.whole.o.start(); A.whole.o2.start(); A.whole.lfo.start();
+    A.windFilt = c.createBiquadFilter(); A.windFilt.type = 'lowpass'; A.windFilt.frequency.value = 400; A.windFilt.Q.value = 0.3;
+    lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 900; lp2.Q.value = 0.3;
+    A.windGain = c.createGain(); A.windGain.gain.value = 0;
+    src.connect(A.windFilt); A.windFilt.connect(lp2); lp2.connect(A.windGain); A.windGain.connect(A.bus); src.start();
+    return true;
+  }
+  function voiceKind() {        /* the clumps as an organ or as tuned air, and the echo */
+    var now, i, v;
+    if (!A.ctx) { return; }
+    now = A.ctx.currentTime;
+    for (i = 0; i < A.voices.length; i++) { v = A.voices[i]; v.og.gain.setTargetAtTime(A.kind === 0 ? 1 : 0, now, 0.2); v.ag.gain.setTargetAtTime(A.kind === 1 ? 22 : 0, now, 0.2); }
+    A.delay.delayTime.setTargetAtTime(0.33, now, 0.2);
+    A.wet.gain.setTargetAtTime(0.7 * OPT.echo / 100, now, 0.2); A.fb.gain.setTargetAtTime(0.2 + 0.36 * OPT.echo / 100, now, 0.2);
+  }
+  /* The bubbles' voices. A share is a ratio, as a musical interval is, so each bubble sounds its share against the whole's tone: 2/1 an octave
+     above it, 3/2 a fifth, 1/2 an octave below. It is in tune while it holds its share and slides off as it gets fuller or emptier; it is
+     steady while what its dots share in going round outweighs their straying, and wavers as the straying grows; it swells once each time round.
+     The pieces of one drop, or of one fractured family, are one voice of up to three tones, so a bubble that breaks into three is heard as its
+     tone splitting into three on one pitch. */
+  function shareHz(k) { var f = WHOLE * k; while (f < 30) { f *= 2; } while (f > 4000) { f /= 2; } return f; }      /* the lowest and highest shares (below 1/7, above 18/1) are moved into easy hearing by whole octaves */
+  function offCents(m) { return m === undefined || m !== m ? 0 : Math.max(-300, Math.min(300, 100 * Math.log(Math.max(0.0625, 1 + m)) / Math.LN2)); }      /* a twelfth as far, in pitch, as its count is from its share, at most three semitones */
+  function loudFor(hz) { return Math.max(0.45, Math.min(2.2, Math.pow(hz / WHOLE, -0.35))); }      /* low notes are given more, high ones less, so they are heard alike */
+  function bubVoice() {
+    var c = A.ctx, v = { o: [], og: [], ws: c.createWaveShaper(), f: c.createBiquadFilter(), f2: c.createBiquadFilter(), sw: c.createGain(), swl: c.createOscillator(), swd: c.createGain(), mth: c.createGain(), vib: c.createOscillator(), vibd: c.createGain(), g: c.createGain(), pan: c.createStereoPanner ? c.createStereoPanner() : null, id: null, hz: 0, live: false, x: 0, y: 0 }, k, o, gk;
+    v.f.type = 'lowpass'; v.f.frequency.value = 2600; v.f.Q.value = 0.5; v.f2.type = 'lowpass'; v.f2.frequency.value = 18000; v.g.gain.value = 0; v.sw.gain.value = 1;
+    v.vib.frequency.value = 5; v.vibd.gain.value = 0; v.vib.connect(v.vibd);              /* the waver: a slow wobble of pitch, deeper as the straying grows */
+    v.swl.frequency.value = 0.3; v.swd.gain.value = 0; v.swl.connect(v.swd); v.swd.connect(v.sw.gain);      /* the swell: once each time round */
+    v.mth.gain.value = 0; v.swl.connect(v.mth); v.mth.connect(v.f.frequency);      /* the mouth: for a jaw harp, the peak sweeps up and down once each time round */
+    for (k = 0; k < 3; k++) { o = c.createOscillator(); o.setPeriodicWave(A.wave); o.frequency.value = WHOLE; gk = c.createGain(); gk.gain.value = 0; v.vibd.connect(o.detune); o.connect(gk); gk.connect(v.ws); o.start(); v.o.push(o); v.og.push(gk); }
+    v.ws.connect(v.f); v.f.connect(v.f2); v.f2.connect(v.sw); v.sw.connect(v.g);
+    if (v.pan) { v.g.connect(v.pan); v.pan.connect(A.bus); } else { v.g.connect(A.bus); }
+    v.vib.start(); v.swl.start(); applyVoice(v);
+    return v;
+  }
+  /* The bubbles' voices: held tones, or struck once each time a bubble goes round. Each keeps the bubble's share as its pitch. */
+  var BVOX = [        /* f1, f2: each filter's type, frequency, sharpness and (for a peak) gain; drive: the buzz; strike: struck only; accent: held and struck again; per: strikes each time round; jit: how uneven; mouth: the peak sweeps once each time round; hl, al: the held note's and the strikes' loudness; lvl: loudness beside the others */
+    { name: 'Reed', w: 0, f1: ['lowpass', 2600, 0.5, 0], vib: 0, say: 'Bubbles as reeds: a warm, buzzing tone.' },
+    { name: 'Kazoo', w: 3, f1: ['peaking', 1150, 1.3, 11], f2: ['lowpass', 4200, 0.7], drive: 'hard', vib: 3, lvl: 0.6, say: 'Bubbles as kazoos: a buzzing hum that slides with the pitch.' },
+    { name: 'Harmonica', w: 4, f1: ['peaking', 1700, 1, 6], f2: ['lowpass', 3400, 0.9], drive: 'soft', vib: 0, lvl: 0.8, say: 'Bubbles as harmonicas: reedy notes that bend as the pitch shifts.' },
+    { name: 'Tuning fork', w: 5, f1: ['lowpass', 8000, 0.5, 0], accent: 'fork', vib: 0, lvl: 1.25, say: 'Bubbles as tuning forks: pure tones, struck again each time round.' },
+    { name: 'Bloopy', strike: 'bloop', per: 2, jit: 0.35, lvl: 1.3, say: 'Bubbles bloop: about two bloops each time round, at the bubble\u2019s pitch.' },
+    { name: 'Jaw harp', w: 6, f1: ['peaking', 900, 7, 15], f2: ['lowpass', 4800, 0.7], mouth: 1, accent: 'twang', per: 2, jit: 0.12, hl: 0.5, al: 1.1, vib: 0, lvl: 2.2, say: 'Bubbles as jaw harps: a twanging buzz at the bubble\u2019s pitch, twanged twice each time round, with a wah that follows its turning.' },
+    { name: 'Glass', w: 1, f1: ['lowpass', 5000, 0.3, 0], vib: 0, say: 'Bubbles as glass: soft, pure tones.' },
+    { name: 'Strings', w: 2, f1: ['lowpass', 2400, 0.9, 0], vib: 7, say: 'Bubbles as bowed strings.' },
+    { name: 'Choir', w: 2, f1: ['lowpass', 1000, 6, 0], vib: 5, say: 'Bubbles as a choir, singing ah.' },
+    { name: 'Bells', strike: 'bell', say: 'Bubbles as bells: each rings once each time it goes round.' },
+    { name: 'Plucked strings', strike: 'pluck', say: 'Bubbles as plucked strings: each is plucked once each time it goes round.' }];
+  var BELLP = [[1, 1, 2.6], [2, 0.45, 1.7], [3, 0.22, 1.1], [4.2, 0.16, 0.8], [5.4, 0.09, 0.5]];      /* a bell's parts: how high, how strong, how long; the lowest keeps the share's pitch */
+  function applyVoice(v) {
+    var x = BVOX[A.bvoice], k, now, f1 = x.f1 || ['lowpass', 2600, 0.5, 0], f2 = x.f2 || ['lowpass', 18000, 0.7];
+    if (!A.ctx) { return; }
+    if (!x.mouth) { v.mth.gain.setTargetAtTime(0, A.ctx.currentTime, 0.05); }      /* only a jaw harp's mouth moves */
+    if (x.strike) { return; }
+    now = A.ctx.currentTime;
+    for (k = 0; k < 3; k++) { v.o[k].setPeriodicWave(A.waves[x.w]); }
+    v.f.type = f1[0]; v.f.frequency.setTargetAtTime(f1[1], now, 0.05); v.f.Q.setTargetAtTime(f1[2], now, 0.05); v.f.gain.setTargetAtTime(f1[3] || 0, now, 0.05);
+    v.f2.type = f2[0]; v.f2.frequency.setTargetAtTime(f2[1], now, 0.05); v.f2.Q.setTargetAtTime(f2[2], now, 0.05);
+    v.ws.curve = x.drive ? A.curves[x.drive] : null;      /* no buzz: the sound passes through unchanged */
+  }
+  function setBubbleVoice(i) {
+    var k;
+    A.bvoice = i;
+    for (k = 0; k < A.bv.length; k++) { applyVoice(A.bv[k]); if (BVOX[i].strike && A.ctx) { A.bv[k].g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.1); } }
+  }
+  function strike(kind, cs, hz, level, pan, now) {        /* a bell, a plucked string, a bloop or a fork's strike at each piece's pitch, a moment apart */
+    var c = A.ctx, out, p = null, i, j, f, o, g, fl, t, end = now, o2, g2, lo, hi, fl2, ns, nf;
+    if (now - A.strikeT > 0.1) { A.strikeT = now; A.strikes = 0; }
+    if (A.strikes >= 8) { return; }      /* many at once are heard as a few */
+    out = c.createGain(); out.gain.value = level;
+    if (c.createStereoPanner) { p = c.createStereoPanner(); p.pan.value = pan; out.connect(p); p.connect(A.bus); } else { out.connect(A.bus); }
+    for (i = 0; i < cs.length; i++) {
+      A.strikes += 1; t = now + 0.01 + 0.045 * i; f = hz * Math.pow(2, offCents(cs[i].m) / 1200);
+      if (kind === 'bell') {
+        for (j = 0; j < BELLP.length; j++) {
+          if (f * BELLP[j][0] > 9000) { continue; }
+          o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f * BELLP[j][0]; g = c.createGain();
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(BELLP[j][1], t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + BELLP[j][2]);
+          o.connect(g); g.connect(out); o.start(t); o.stop(t + BELLP[j][2] + 0.05); end = Math.max(end, t + BELLP[j][2] + 0.05);
+        }
+      } else if (kind === 'bloop') {        /* a drop of tone that swoops up into the bubble's pitch and is gone, with its octave for a moment */
+        o = c.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f * 0.55, t); o.frequency.exponentialRampToValueAtTime(f * 1.12, t + 0.035); o.frequency.exponentialRampToValueAtTime(f, t + 0.12);
+        g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(1, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+        o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.32);
+        o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.setValueAtTime(f * 1.1, t); o2.frequency.exponentialRampToValueAtTime(f * 2.24, t + 0.035); o2.frequency.exponentialRampToValueAtTime(f * 2, t + 0.12);
+        g2 = c.createGain(); g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.35, t + 0.006); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+        o2.connect(g2); g2.connect(out); o2.start(t); o2.stop(t + 0.17); end = Math.max(end, t + 0.33);
+      } else if (kind === 'fork') {        /* a tuning fork struck again: its tone rings up, with the brief high clang of the strike */
+        o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f; g = c.createGain();
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.6, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+        o.connect(g); g.connect(out); o.start(t); o.stop(t + 1.65); end = Math.max(end, t + 1.65);
+        if (f * 6.27 < 12000) {
+          o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.value = f * 6.27; g2 = c.createGain();
+          g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.25, t + 0.003); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+          o2.connect(g2); g2.connect(out); o2.start(t); o2.stop(t + 0.27);
+        }
+      } else if (kind === 'twang') {        /* a jaw harp twanged: the flick of a finger, then the tongue's buzz at the bubble's pitch, its ringing parts sweeping up through the mouth and settling as it rings down */
+        lo = Math.max(350, 2.5 * f); hi = Math.min(3600, Math.max(1500, 8 * f));
+        o = c.createOscillator(); o.setPeriodicWave(A.waves[6]); o.frequency.value = f;
+        fl = c.createBiquadFilter(); fl.type = 'peaking'; fl.Q.value = 9; fl.gain.value = 18;
+        fl.frequency.setValueAtTime(lo, t); fl.frequency.exponentialRampToValueAtTime(hi, t + 0.08); fl.frequency.exponentialRampToValueAtTime(Math.sqrt(lo * hi), t + 0.45);
+        fl2 = c.createBiquadFilter(); fl2.type = 'lowpass'; fl2.frequency.value = 5000; fl2.Q.value = 0.7;
+        g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.8, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+        o.connect(fl); fl.connect(fl2); fl2.connect(g); g.connect(out); o.start(t); o.stop(t + 1.15); end = Math.max(end, t + 1.15);
+        if (A.noise) {
+          ns = c.createBufferSource(); ns.buffer = A.noise; nf = c.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 3200; nf.Q.value = 1.2; g2 = c.createGain();
+          g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.25, t + 0.002); g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+          ns.connect(nf); nf.connect(g2); g2.connect(out); ns.start(t, Math.random() * 1.5); ns.stop(t + 0.03);
+        }
+      } else {
+        o = c.createOscillator(); o.setPeriodicWave(A.waves[2]); o.frequency.value = f; fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.Q.value = 0.8;
+        fl.frequency.setValueAtTime(Math.min(9000, f * 12), t); fl.frequency.exponentialRampToValueAtTime(Math.max(120, f * 1.5), t + 0.35);
+        g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(1, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.3);
+        o.connect(fl); fl.connect(g); g.connect(out); o.start(t); o.stop(t + 1.35); end = Math.max(end, t + 1.35);
+      }
+    }
+    setTimeout(function () { try { out.disconnect(); if (p) { p.disconnect(); } } catch (e) { /* gone already */ } }, (end - now) * 1000 + 250);
+  }
+  function bubbleSound(now) {
+    var F = S.F, B = F.bub || [], hw = F.w / 2, hh = F.h / 2, gm = {}, gl = [], used = [], i, j, b, g, v, n, q, ex, ey, lv, hm, om, fresh, best, bd, d, cs, gains, x = BVOX[A.bvoice], dtL = Math.max(0, Math.min(0.5, now - (A.lastL || now))), lvS, pn, rv, ml, mh;
+    A.lastL = now;
+    for (i = 0; i < B.length; i++) {        /* the pieces of one drop, or of one fractured family, sound as one voice */
+      b = B[i]; q = String(b.g); g = gm[q];
+      if (!g) { g = gm[q] = { id: q, k: b.k, ps: [], area: 0, hold: 0, om: 0, x0: b.x, y0: b.y, sx: 0, sy: 0 }; gl.push(g); }
+      ex = b.x - g.x0; if (ex > hw) { ex -= F.w; } else if (ex < -hw) { ex += F.w; }
+      ey = b.y - g.y0; if (ey > hh) { ey -= F.h; } else if (ey < -hh) { ey += F.h; }
+      g.ps.push(b); g.area += b.r * b.r / (BUBR * BUBR); g.sx += ex; g.sy += ey; g.om += Math.abs(b.om || 0);
+      g.hold += b.hold === undefined ? 1 : Math.max(0, Math.min(1, b.holdIn === undefined ? b.hold : Math.min(b.hold, b.holdIn)));
+    }
+    gl.sort(function (a, c) { return c.area - a.area; });
+    if (gl.length > 10) { gl.length = 10; }      /* ten voices at most, the largest first */
+    while (A.bv.length < gl.length) { A.bv.push(bubVoice()); }
+    for (i = 0; i < A.bv.length; i++) { used.push(false); }
+    for (j = 0; j < gl.length; j++) {
+      g = gl[j]; n = g.ps.length; g.x = g.x0 + g.sx / n; g.y = g.y0 + g.sy / n; g.hz = shareHz(g.k);
+      best = -1; fresh = false;
+      for (i = 0; i < A.bv.length; i++) { if (!used[i] && A.bv[i].id === g.id) { best = i; break; } }      /* each voice stays with its drop */
+      if (best < 0) {        /* a family takes the voice of the bubble it broke from: one whose drop has just gone, at the same pitch and close by */
+        bd = 4 * BUBR * BUBR;
+        for (i = 0; i < A.bv.length; i++) {
+          v = A.bv[i]; if (used[i] || !v.live || v.hz !== g.hz || gm[v.id]) { continue; }
+          ex = Math.abs(g.x - v.x); if (ex > hw) { ex = F.w - ex; } ey = Math.abs(g.y - v.y); if (ey > hh) { ey = F.h - ey; }
+          d = ex * ex + ey * ey; if (d < bd) { bd = d; best = i; }
+        }
+      }
+      if (best < 0) { for (i = 0; i < A.bv.length; i++) { if (!used[i] && !A.bv[i].live) { best = i; fresh = true; break; } } }
+      if (best < 0) { for (i = 0; i < A.bv.length; i++) { if (!used[i] && !gm[A.bv[i].id]) { best = i; fresh = true; break; } } }
+      if (best < 0) { continue; }
+      v = A.bv[best]; used[best] = true; v.id = g.id; v.live = true; v.x = g.x; v.y = g.y;
+      hm = g.hold / n; om = g.om / n;
+      g.ps.sort(function (a, c) { return (a.m || 0) - (c.m || 0); });
+      cs = n === 1 ? [g.ps[0]] : n === 2 ? [g.ps[0], g.ps[1]] : [g.ps[0], g.ps[n >> 1], g.ps[n - 1]];      /* up to three tones: the emptiest piece, the middle one and the fullest */
+      gains = cs.length === 1 ? [1, 0, 0] : cs.length === 2 ? [0.71, 0.71, 0] : [0.58, 0.58, 0.58];
+      for (i = 0; i < 3; i++) {
+        if (fresh || v.hz !== g.hz) { v.o[i].frequency.cancelScheduledValues(now); v.o[i].frequency.setValueAtTime(g.hz, now); }
+        v.o[i].detune.setTargetAtTime(i < cs.length ? offCents(cs[i].m) : 0, now, fresh ? 0.02 : 0.15);
+        v.og[i].gain.setTargetAtTime(gains[i], now, 0.12);
+      }
+      v.hz = g.hz;
+      lvS = 0.055 * loudFor(g.hz) * Math.min(1.8, Math.sqrt(g.area)) / Math.sqrt(Math.max(1, gl.length / 2)); lv = x.strike ? 0 : lvS * (x.lvl || 1) * (x.hl || 1);      /* a struck voice holds no note between its strikes */
+      v.g.gain.setTargetAtTime(lv, now, fresh ? 0.3 : 0.15);
+      v.vibd.gain.setTargetAtTime(Math.max(x.vib || 0, 32 * (1 - hm) * (1 - hm)), now, 0.2); v.vib.frequency.setTargetAtTime(4.5 + 3 * (1 - hm), now, 0.3);      /* steady while its dots share their going round; wavering as they stray */
+      v.swl.frequency.setTargetAtTime(Math.max(0.03, Math.min(4, om * 0.8 * (S.slowmo ? 0.25 : 1) / 6.283185307)), now, 0.3); v.swd.gain.setTargetAtTime(om > 0.05 ? 0.22 : 0, now, 0.3);      /* a swell once each time round */
+      if (x.mouth) { ml = Math.max(350, 2.5 * g.hz); mh = Math.min(3600, Math.max(1500, 8 * g.hz)); v.f.frequency.setTargetAtTime((ml + mh) / 2, now, 0.2); v.mth.gain.setTargetAtTime((om > 0.05 ? 0.45 : 0.15) * (mh - ml), now, 0.3); }      /* the jaw harp's mouth: its ringing parts sweep up and down once each time round */
+      ex = g.x - S.cx; if (ex > hw) { ex -= F.w; } else if (ex < -hw) { ex += F.w; }
+      pn = Math.max(-0.85, Math.min(0.85, ex / hw * S.zoom));
+      if (v.pan) { v.pan.pan.setTargetAtTime(pn, now, 0.15); }
+      if (x.strike || x.accent) {        /* struck voices sound as the bubble goes round, and at once when it first sounds; a tuning fork is struck again each time round, a jaw harp twanged twice */
+        rv = Math.max(0.15, Math.min(3, om * 0.8 * (S.slowmo ? 0.25 : 1) / 6.283185307)) * (x.per || 1);
+        v.ph = fresh ? 1 : (v.ph || 0) + dtL * rv;
+        if (v.ph >= 1) { v.ph = x.jit ? -x.jit * Math.random() : v.ph - Math.floor(v.ph); strike(x.strike || x.accent, cs, g.hz, (x.strike ? 1.2 : x.al || 0.7) * lvS * (x.lvl || 1), pn, now); }
+      }
+    }
+    for (i = 0; i < A.bv.length; i++) { if (!used[i] && A.bv[i].live) { A.bv[i].live = false; A.bv[i].g.gain.setTargetAtTime(0, now, 0.25); } }
+    A.whole.g.gain.setTargetAtTime(gl.length && A.wholeOn ? 0.018 : 0, now, gl.length && A.wholeOn ? 0.8 : 1.2);      /* the whole sounds while there are bubbles to hear against it, unless it is switched off */
+    return gl.length;
+  }
+  function plink(b) {        /* a pop: a soft pluck at the bubble's pitch, where it was */
+    var c = A.ctx, now, o, f, g, p = null, hz, lv, ex, hw;
+    if (!A.on || !c || S.paused || !A.wave) { return; }
+    now = c.currentTime;
+    if (now - A.pluckT > 0.08) { A.pluckT = now; A.plucks = 0; }
+    if (A.plucks >= 4) { return; }      /* many at once, as when a whole family pops, are heard as a few */
+    A.plucks += 1;
+    hz = shareHz(b.k) * Math.pow(2, offCents(b.m) / 1200); lv = 0.12 * loudFor(hz) * Math.min(1, Math.sqrt(b.r / BUBR));
+    o = c.createOscillator(); o.setPeriodicWave(A.wave); o.frequency.value = hz;
+    f = c.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 0.7; f.frequency.setValueAtTime(Math.min(9000, hz * 10), now); f.frequency.exponentialRampToValueAtTime(Math.max(150, hz * 1.2), now + 0.5);
+    g = c.createGain(); g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(lv, now + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+    o.connect(f); f.connect(g);
+    hw = S.F.w / 2; ex = b.x - S.cx; if (ex > hw) { ex -= S.F.w; } else if (ex < -hw) { ex += S.F.w; }
+    if (c.createStereoPanner) { p = c.createStereoPanner(); p.pan.value = Math.max(-0.85, Math.min(0.85, ex / hw * S.zoom)); g.connect(p); p.connect(A.bus); } else { g.connect(A.bus); }
+    o.start(now); o.stop(now + 0.95); o.onended = function () { try { g.disconnect(); if (p) { p.disconnect(); } } catch (e) { /* gone already */ } };
+  }
+  function audioLevel() { if (A.ctx) { A.master.gain.setTargetAtTime(A.on && !S.paused ? A.level : 0, A.ctx.currentTime, 0.25); } }
+  function listen() {
+    if (!A.on || !A.ctx) { return; }
+    var F = S.F, now = A.ctx.currentTime, peaks = hear(F, 8), used = [], i, j, p, v, best, bd, dx, dy, d, vol, f, sum = 0, fresh, ex, ey, sp = 0, cnt = 0, hw = F.w / 2, hh = F.h / 2, nb, duck;
+    centre();
+    nb = bubbleSound(now); duck = nb ? 0.4 : 1;      /* the clumps and the air are quieter while there are bubbles */
+    for (i = 0; i < A.voices.length; i++) { used.push(false); }
+    for (j = 0; j < peaks.length; j++) {
+      p = peaks[j]; vol = Math.max(0, Math.min(1, (Math.log(p.a) / Math.LN10 + 1) / 3.1));
+      if (vol <= 0) { continue; }
+      best = -1; bd = 0.02;
+      for (i = 0; i < A.voices.length; i++) {                 /* keep each tone with the gathering it has been following */
+        v = A.voices[i]; if (used[i] || !v.active) { continue; }
+        dx = Math.abs(p.x - v.x); if (dx > hw) { dx = F.w - dx; } dy = Math.abs(p.y - v.y); if (dy > hh) { dy = F.h - dy; }
+        d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; }
+      }
+      fresh = false;
+      if (best < 0) { for (i = 0; i < A.voices.length; i++) { if (!used[i] && !A.voices[i].active) { best = i; fresh = true; break; } } }
+      if (best < 0) { continue; }
+      v = A.voices[best]; used[best] = true; v.active = true; v.x = p.x; v.y = p.y;
+      f = p.u;
+      if (fresh || Math.abs(f - v.u) > 0.5) { pitch(v, f, now, 0); }         /* across the join of the ring nothing needs to slide: the parts simply change places */
+      else if (f !== v.u) { pitch(v, f, now, 0.12); }
+      ex = p.x - S.cx; if (ex > hw) { ex -= F.w; } else if (ex < -hw) { ex += F.w; }
+      ey = p.y - S.cy; if (ey > hh) { ey -= F.h; } else if (ey < -hh) { ey += F.h; }
+      if (S.zoom > 1) { d = Math.sqrt(ex * ex + ey * ey) / (hw / S.zoom); vol *= Math.max(0.1, 1 - 0.6 * Math.max(0, d - 0.6)); }   /* zoomed in, what is out of view is fainter */
+      v.g.gain.setTargetAtTime(0.11 * Math.pow(vol, 1.3) * duck, now, fresh ? 0.35 : 0.15);
+      if (v.pan) { v.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, ex / hw * S.zoom)), now, 0.1); }
+      sum += vol;
+    }
+    for (i = 0; i < A.voices.length; i++) { if (!used[i] && A.voices[i].active) { A.voices[i].active = false; A.voices[i].g.gain.setTargetAtTime(0, now, 0.3); } }
+    for (i = 0; i < F.n; i += 16) { sp += Math.sqrt(F.vx[i] * F.vx[i] + F.vy[i] * F.vy[i]); cnt++; }
+    sp = cnt ? sp / cnt : 0;
+    A.windGain.gain.setTargetAtTime(0.09 * Math.max(0, 1 - sum / 2.5) * Math.min(1, sp / 0.2) * (nb ? 0.6 : 1), now, 0.5);
+    A.windFilt.frequency.setTargetAtTime(260 + 520 * Math.min(1, sp / 0.7), now, 0.5);
+  }
+  /* Saving: a still of the picture, or a clip of it moving. The viewer is asked before anything is saved. */
+  var SAVE = { dl: null, rec: null, chunks: [], t0: 0, timer: 0, kill: 0, type: '', ext: '', dest: null, stream: null, cv: null, cx: null, busy: false, err: '', watch: 0,
+    mode: /firefox/i.test(navigator.userAgent || '') ? 'recorder' : 'frames' };   /* Firefox's recorder is the more dependable of its two */
+  if (window.claude && window.claude.use) { window.claude.use('downloads').then(function (d) { SAVE.dl = d; }, function () { SAVE.dl = null; }); }
+  function stamp() { var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()); }
+  SAVE.plain = !(window.claude && window.claude.use);      /* opened as a file, or hosted somewhere else: the browser's own way of saving works there */
+  function canSave() { return !!SAVE.dl || SAVE.plain; }
+  function offer(name, blob) {
+    var u, a;
+    if (!SAVE.dl && SAVE.plain) {
+      try { u = URL.createObjectURL(blob); a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 5000); say('Saved ' + name + '.', 2500); }
+      catch (e0) { say('That could not be saved here.', 3000); }
+      return;
+    }
+    if (!SAVE.dl) { say('Saving is not available in this view.', 3000); return; }
+    SAVE.dl.save({ filename: name, data: blob }).then(function () { say('Saved ' + name + '.', 2500); }, function (e) {
+      say(e && e.code === 'declined' ? 'Not saved.' : e && e.code === 'rate_limited' ? 'One save at a time. Try again in a moment.' : 'That could not be saved in this view.', 3000);
+    });
+  }
+  function still() {
+    if (!canSave()) { say('Saving is not available in this view.', 3000); return; }
+    if (!V.toBlob) { say('This browser can\u2019t save a picture.', 3000); return; }
+    V.toBlob(function (b) { if (b) { offer('temporary-agreements-' + stamp() + '.png', b); } else { say('This browser can\u2019t save a picture.', 3000); } }, 'image/png');
+  }
+  /* Two ways to make a clip. One encodes each frame as it is drawn and writes an MP4 file. The other uses the browser's own recorder.
+     Each fails in some browsers, so if one gives nothing the next press of R tries the other, and every failure says why. */
+  var CLIP = null;
+  function why(e) { return e ? (e.name || 'error') + (e.message ? ': ' + String(e.message).slice(0, 90) : '') : 'unknown'; }
+  function otherWay() { SAVE.mode = SAVE.mode === 'frames' ? 'recorder' : 'frames'; return ' Press R to try another way of recording.'; }
+  function recUi(on) { recBtn.textContent = on ? 'Stop recording' : 'Record a clip'; recBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); status(); }
+  function clipSize() {                          /* even sides, and no larger than 1920 by 1080: some encoders refuse anything else */
+    var w = V.width, h = V.height, k = Math.min(1, 1920 / w, 1080 / h);
+    return [Math.max(2, Math.floor(w * k / 2) * 2), Math.max(2, Math.floor(h * k / 2) * 2)];
+  }
+  function firstSupported(Enc, list, i, then) {  /* find the first configuration this browser can encode */
+    var p;
+    if (i >= list.length) { then(null); return; }
+    try { p = Enc.isConfigSupported(list[i]); } catch (e) { firstSupported(Enc, list, i + 1, then); return; }
+    p.then(function (r) { if (r && r.supported) { then(list[i]); } else { firstSupported(Enc, list, i + 1, then); } }, function () { firstSupported(Enc, list, i + 1, then); });
+  }
+  function startFrames(fail) {
+    var M = window.Mp4Muxer, sz = clipSize(), vlist, alist = [], rate;
+    if (!M || !window.VideoEncoder || !window.VideoFrame) { fail('this browser has no frame encoder'); return; }
+    vlist = ['avc1.640028', 'avc1.4d0028', 'avc1.420028'].map(function (c) { return { codec: c, width: sz[0], height: sz[1], bitrate: 12000000, framerate: 30, avc: { format: 'avc' } }; });
+    vlist.push({ codec: 'vp09.00.40.08', width: sz[0], height: sz[1], bitrate: 12000000, framerate: 30 });
+    SAVE.busy = true;
+    firstSupported(window.VideoEncoder, vlist, 0, function (vcfg) {
+      if (!vcfg) { SAVE.busy = false; fail('this browser cannot encode video of this size'); return; }
+      if (A.on && A.ctx && A.comp && window.AudioEncoder && window.AudioData && A.ctx.createScriptProcessor) {
+        rate = A.ctx.sampleRate;
+        alist = [{ codec: 'mp4a.40.2', sampleRate: rate, numberOfChannels: 2, bitrate: 160000 }, { codec: 'opus', sampleRate: rate, numberOfChannels: 2, bitrate: 128000 }];
+      }
+      firstSupported(window.AudioEncoder, alist, 0, function (acfg) {
+        var c = { w: sz[0], h: sz[1], n: 0, out: 0, last: -1, t0: 0, err: null, closed: false, samples: 0, sound: !!acfg, sp: null, mute: null, aenc: null }, opts;
+        SAVE.busy = false;
+        try {
+          c.cv = document.createElement('canvas'); c.cv.width = c.w; c.cv.height = c.h; c.cx = c.cv.getContext('2d');
+          opts = { target: new M.ArrayBufferTarget(), video: { codec: vcfg.codec.indexOf('vp09') === 0 ? 'vp9' : 'avc', width: c.w, height: c.h }, fastStart: 'in-memory', firstTimestampBehavior: 'offset' };
+          if (acfg) { opts.audio = { codec: acfg.codec === 'opus' ? 'opus' : 'aac', numberOfChannels: 2, sampleRate: acfg.sampleRate }; }
+          c.muxer = new M.Muxer(opts);
+          c.enc = new window.VideoEncoder({
+            output: function (chunk, meta) { if (c.closed) { return; } try { c.muxer.addVideoChunk(chunk, meta); c.out += 1; } catch (e) { c.err = c.err || e; } },
+            error: function (e) { c.err = c.err || e; }
+          });
+          c.enc.configure(vcfg);
+          if (acfg) {
+            c.aenc = new window.AudioEncoder({
+              output: function (chunk, meta) { if (c.closed) { return; } try { c.muxer.addAudioChunk(chunk, meta); } catch (e) { c.err = c.err || e; } },
+              error: function (e) { c.err = c.err || e; }
+            });
+            c.aenc.configure(acfg);
+            c.sp = A.ctx.createScriptProcessor(4096, 2, 2); c.mute = A.ctx.createGain(); c.mute.gain.value = 0;
+            c.sp.onaudioprocess = function (ev) {
+              var L = ev.inputBuffer.getChannelData(0), R = ev.inputBuffer.numberOfChannels > 1 ? ev.inputBuffer.getChannelData(1) : L, buf, ad;
+              if (CLIP !== c || c.err) { return; }
+              buf = new Float32Array(L.length * 2); buf.set(L, 0); buf.set(R, L.length);
+              try {
+                ad = new window.AudioData({ format: 'f32-planar', sampleRate: acfg.sampleRate, numberOfFrames: L.length, numberOfChannels: 2, timestamp: Math.round(c.samples / acfg.sampleRate * 1e6), data: buf });
+                c.aenc.encode(ad); ad.close(); c.samples += L.length;
+              } catch (e) { c.err = c.err || e; }
+            };
+            A.comp.connect(c.sp); c.sp.connect(c.mute); c.mute.connect(A.ctx.destination);
+          }
+        } catch (e) { fail('the encoder could not be set up (' + why(e) + ')'); return; }
+        c.t0 = performance.now(); CLIP = c; SAVE.t0 = Date.now();
+        SAVE.timer = setTimeout(function () { endClip(false); }, 90000);
+        say('Recording' + (c.sound ? ' with sound' : A.on ? ' without sound' : '') + '. Press ' + keyName('R again', 'Stop recording') + ' to stop. It stops by itself after a minute and a half.', 4000); recUi(true);
+      });
+    });
+  }
+  function clipFrame() {                         /* called after each frame is painted */
+    var c = CLIP, now, f;
+    if (!c) { return; }
+    if (c.err) { endClip(true); return; }
+    now = performance.now() - c.t0;
+    if (now - c.last < 30 || c.enc.encodeQueueSize > 4) { return; }     /* about thirty frames a second, and none while the encoder is behind */
+    try {
+      c.cx.drawImage(V, 0, 0, c.w, c.h);
+      f = new window.VideoFrame(c.cv, { timestamp: Math.round(now * 1000) });
+      c.enc.encode(f, { keyFrame: c.n % 60 === 0 }); f.close(); c.n += 1; c.last = now;
+    } catch (e) { c.err = e; endClip(true); }
+  }
+  function endClip(failed) {
+    var c = CLIP, jobs = [], wrote = false;
+    if (!c) { return; }
+    CLIP = null; clearTimeout(SAVE.timer);
+    if (c.sp) { try { A.comp.disconnect(c.sp); c.sp.disconnect(); c.mute.disconnect(); } catch (e) { /* already gone */ } c.sp.onaudioprocess = null; }
+    recUi(false);
+    function write(late) {                       /* put the file together from whatever the encoder has handed back */
+      var buf;
+      if (wrote) { return; }
+      wrote = true; c.closed = true;
+      try { c.enc.close(); if (c.aenc) { c.aenc.close(); } } catch (e3) { /* closed */ }
+      if (c.err) { say('The recording failed (' + why(c.err) + ').' + otherWay(), 9000); return; }
+      if (!c.out) { say('Nothing was recorded: the encoder took ' + c.n + ' frames and gave none back.' + otherWay(), 9000); return; }
+      try { c.muxer.finalize(); buf = c.muxer.target.buffer; } catch (e4) { say('The clip could not be put together (' + why(e4) + ').' + otherWay(), 9000); return; }
+      if (!buf || !buf.byteLength) { say('Nothing was recorded.' + otherWay(), 9000); return; }
+      if (late) { SAVE.mode = 'recorder'; }
+      offer('temporary-agreements-' + stamp() + '.mp4', new Blob([buf], { type: 'video/mp4' }));
+    }
+    if (failed || c.err) { write(false); return; }
+    say('Finishing the clip.', 0);
+    try { jobs.push(c.enc.flush()); if (c.aenc) { jobs.push(c.aenc.flush()); } } catch (e2) { c.err = e2; write(false); return; }
+    Promise.all(jobs).then(function () { write(false); }, function (e) { c.err = c.err || e; write(false); });
+    setTimeout(function () { write(true); }, 6000);   /* if the encoder never says it has finished, write what has arrived */
+  }
+
+  /* The browser's own recorder. */
+  function finish() {                       /* end a recording however it ended, and offer what was captured */
+    var rec = SAVE.rec, blob;
+    if (!rec) { return; }
+    SAVE.rec = null; clearTimeout(SAVE.timer); clearTimeout(SAVE.kill); clearTimeout(SAVE.watch);
+    rec.ondataavailable = null; rec.onstop = null; rec.onerror = null;
+    try { if (rec.state !== 'inactive') { rec.stop(); } } catch (e0) { /* already stopped */ }
+    if (SAVE.dest) { try { A.comp.disconnect(SAVE.dest); } catch (e) { /* already gone */ } SAVE.dest = null; }
+    if (SAVE.stream) { try { SAVE.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e2) { /* nothing to stop */ } SAVE.stream = null; }
+    recUi(false);
+    blob = new Blob(SAVE.chunks, { type: SAVE.type.split(';')[0] }); SAVE.chunks = [];
+    if (blob.size) { offer('temporary-agreements-' + stamp() + '.' + SAVE.ext, blob); }
+    else { say('Nothing was recorded (' + (SAVE.err || 'the recorder gave no data') + ', as ' + SAVE.type + ').' + otherWay(), 9000); }
+  }
+  function stopRec() {
+    var rec = SAVE.rec;
+    if (!rec) { return; }
+    say('Finishing the clip.', 0);
+    try { if (rec.state === 'inactive') { finish(); return; } if (rec.requestData) { rec.requestData(); } rec.stop(); } catch (e) { finish(); return; }
+    SAVE.kill = setTimeout(finish, 6000);     /* if the recorder never reports that it stopped, end it anyway */
+  }
+  function begin(stream, type) {               /* throws when this kind of clip cannot be made here */
+    var rec = new window.MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 10000000 });
+    rec.start(500);
+    return rec;
+  }
+  function startRecorder() {                   /* true when a recording has begun */
+    var i, rec = null, vs, as = null, withSound = false, sz = clipSize(), types;
+    if (!window.MediaRecorder) { return false; }
+    SAVE.cv = document.createElement('canvas'); SAVE.cv.width = sz[0]; SAVE.cv.height = sz[1]; SAVE.cx = SAVE.cv.getContext('2d'); SAVE.cx.drawImage(V, 0, 0, sz[0], sz[1]);
+    try { vs = SAVE.cv.captureStream(30); } catch (e0) { return false; }
+    if (A.on && A.ctx && A.comp && window.MediaStream && A.ctx.createMediaStreamDestination) {              /* with sound on, the clip carries the sound as well */
+      try { SAVE.dest = A.ctx.createMediaStreamDestination(); A.comp.connect(SAVE.dest); as = SAVE.dest.stream.getAudioTracks(); } catch (e) { SAVE.dest = null; as = null; }
+    }
+    if (as && as.length) {
+      types = ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+      for (i = 0; i < types.length && !rec; i++) {
+        if (window.MediaRecorder.isTypeSupported && !window.MediaRecorder.isTypeSupported(types[i])) { continue; }
+        try { rec = begin(new window.MediaStream(vs.getVideoTracks().concat(as)), types[i]); withSound = true; SAVE.type = types[i]; } catch (e1) { rec = null; }
+      }
+    }
+    types = ['video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+    for (i = 0; i < types.length && !rec; i++) {
+      if (window.MediaRecorder.isTypeSupported && !window.MediaRecorder.isTypeSupported(types[i])) { continue; }
+      try { rec = begin(vs, types[i]); SAVE.type = types[i]; } catch (e2) { rec = null; }
+    }
+    if (!rec) {
+      if (SAVE.dest) { try { A.comp.disconnect(SAVE.dest); } catch (e3) { /* already gone */ } SAVE.dest = null; }
+      return false;
+    }
+    SAVE.ext = SAVE.type.indexOf('mp4') >= 0 ? 'mp4' : 'webm'; SAVE.err = '';
+    SAVE.stream = vs; SAVE.rec = rec; SAVE.chunks = []; SAVE.t0 = Date.now();
+    rec.ondataavailable = function (ev) { if (ev.data && ev.data.size) { SAVE.chunks.push(ev.data); } };
+    rec.onstop = finish;
+    rec.onerror = function (ev) { SAVE.err = 'the recorder reported ' + ((ev && ev.error && (ev.error.name || ev.error.message)) || 'an error'); finish(); };
+    SAVE.timer = setTimeout(stopRec, 90000);
+    SAVE.watch = setTimeout(function () { if (SAVE.rec && !SAVE.chunks.length) { SAVE.err = 'no data came in the first three seconds'; finish(); } }, 3200);
+    say('Recording' + (withSound ? ' with sound' : A.on ? ' without sound' : '') + '. Press ' + keyName('R again', 'Stop recording') + ' to stop. It stops by itself after a minute and a half.', 4000); recUi(true);
+    return true;
+  }
+  function record() {
+    if (CLIP) { endClip(false); return; }
+    if (SAVE.rec) { stopRec(); return; }
+    if (SAVE.busy) { return; }
+    if (!canSave()) { say('Saving is not available in this view.', 3000); return; }
+    if (SAVE.mode === 'recorder') {
+      if (!startRecorder()) { startFrames(function (reason) { say('This browser cannot record a clip: its recorder would not start, and ' + reason + '.', 7000); }); }
+    } else {
+      startFrames(function (reason) { if (!startRecorder()) { say('This browser cannot record a clip: ' + reason + ', and its recorder would not start.', 7000); } });
+    }
+  }
+  var recBtn = document.getElementById('rec'), drawBtn = document.getElementById('drawb'), soundBtn = document.getElementById('soundb');
+  drawBtn.addEventListener('click', function () { cardOff(); act('a', null); });
+  var popBtn = document.getElementById('popall'), bubBtn = document.getElementById('bubb'), bubSel = document.getElementById('bubk'), bubWrap = document.getElementById('bubkw'), bubVal = document.getElementById('bubkv'), shapeSel = document.getElementById('bshape');
+  shapeSel.addEventListener('change', function () { S.shape = +shapeSel.value; sayShape(); status(); });
+  var angleSel = document.getElementById('bangle'), circSel = document.getElementById('bcirc');
+  circSel.addEventListener('change', function () { S.circ = +circSel.value; sayCirc(); status(); });
+  angleSel.addEventListener('change', function () { S.angle = +angleSel.value; say('Angled shapes now open at ' + BANG[S.angle] + '\u00b0.', 2200); status(); });
+  bubBtn.addEventListener('click', function () { cardOff(); act('6', null); });
+  popBtn.addEventListener('click', function () { cardOff(); popAll(); });
+  bubSel.addEventListener('input', function () { S.bubk = +bubSel.value; bubVal.textContent = BUBN[S.bubk]; bubSel.setAttribute('aria-valuetext', BUBN[S.bubk]); });      /* it reads its share as it moves */
+  bubSel.addEventListener('change', function () { S.bubk = +bubSel.value; say('The next bubble holds ' + shareSay() + '.', 3600); status(); });      /* and says it in words when let go */
+  soundBtn.addEventListener('click', function () { cardOff(); act('m', null); });
+  document.getElementById('still').addEventListener('click', still);
+  recBtn.addEventListener('click', record);
+
+  /* Status marks: what is switched on, where the drift is in its cycle, and whether there is sound. */
+  var tagsEl = document.getElementById('tags'), cycEl = document.getElementById('cycle'), cycDot = document.getElementById('cyc'), beatEl = document.getElementById('edge-bottom'), lastTags = null;
+  function status() {
+    var F = S.F, t = [], i, li, joined, c;
+    if (SAVE.rec || CLIP) { i = Math.floor((Date.now() - SAVE.t0) / 1000); t.push('Recording, ' + Math.floor(i / 60) + ':' + (i % 60 < 10 ? '0' : '') + (i % 60)); }
+    if (S.paused) { t.push('Paused'); }
+    if (S.bubbles) { c = shapeOf(); t.push(c.n > 1 ? 'Touch drops ' + (c.word === 'angle' ? 'an angle of 9 at ' + c.deg + '\u00b0' : 'a ' + c.word + ' of ' + c.n) + ' holding ' + BUBN[S.bubk] : (c.round ? 'Touch drops a round bubble holding ' : 'Touch drops a bubble holding ') + BUBN[S.bubk]); }
+    if (S.bubbles && S.circ === 1) { t.push('Bubbles go set ways'); } else if (S.bubbles && S.circ === 0) { t.push('Bubbles held, not fracturing'); }
+    if (F.bub && F.bub.length) { t.push(F.bub.length + (F.bub.length === 1 ? ' bubble' : ' bubbles')); }
+    if (S.drawIn) { t.push('Touch draws in'); }
+    if (S.slowmo) { t.push('Quarter speed'); }
+    if (F.held) { t.push('Drift held'); }
+    if (F.wander) { t.push('Drift wandering'); }
+    if (F.smooth) { t.push('Smoothed patch'); }
+    if (S.land) { t.push('Ground for the ringed dot'); }
+    if (F.mem) { t.push('Ground remembers about ' + (F.mem === 1.5 ? '2' : F.mem === 3 ? '4' : F.mem === 12 ? '15' : '45') + ' s'); }
+    if (S.follow >= 0) { t.push('Riding along with one dot'); }
+    if (S.zoom > 1) { t.push('Zoomed in'); }
+    if (S.kind === 1) { t.push('Kin: threes added'); } else if (S.kind === 2) { t.push('Kin: threes mostly'); }
+    if (S.light === 0) { t.push('Amber, pale and blue'); } else if (S.light === 1) { t.push('Visible light'); }
+    if (S.kal) { t.push('Kaleidoscope'); }
+    if (S.long) { t.push('Longer trails'); }
+    if (S.faint === 1) { t.push('Fainter dots'); } else if (S.faint === 2) { t.push('Fainter dots still'); }
+    if (S.n0 && F.n !== S.n0) { t.push(num(F.n) + ' dots'); }
+    if (S.roomi !== 2) { t.push('Room: ' + ROOMN[S.roomi].toLowerCase()); }
+    if (A.on) { t.push('Sound on: ' + BVOX[A.bvoice].name.toLowerCase() + (A.kind === 1 ? ', clumps as air' : A.kind === 2 ? ', clumps quiet' : '')); }
+    joined = t.join('|');
+    if (joined !== lastTags) {
+      lastTags = joined;
+      while (tagsEl.firstChild) { tagsEl.removeChild(tagsEl.firstChild); }
+      for (i = 0; i < t.length; i++) { li = document.createElement('li'); li.textContent = t[i]; tagsEl.appendChild(li); }
+    }
+    drawBtn.setAttribute('aria-pressed', S.drawIn ? 'true' : 'false'); bubBtn.setAttribute('aria-pressed', S.bubbles ? 'true' : 'false'); popBtn.hidden = !(F.bub && F.bub.length); bubWrap.hidden = !S.bubbles; bubSel.value = String(S.bubk); bubVal.textContent = BUBN[S.bubk]; bubSel.setAttribute('aria-valuetext', BUBN[S.bubk]); shapeSel.hidden = !S.bubbles; shapeSel.value = String(S.shape); angleSel.hidden = !S.bubbles || S.shape !== 3; angleSel.value = String(S.angle); circSel.hidden = !S.bubbles; circSel.value = String(S.circ); soundBtn.setAttribute('aria-pressed', A.on ? 'true' : 'false');
+    fitPanels(); legendState(); clearMarks();
+    beatEl.className = A.on ? 'on' : '';
+    c = Math.cos(drift1(F));
+    cycDot.style.left = (3 + 94 * (c + 1) / 2).toFixed(1) + '%'; cycEl.className = F.held ? 'held' : '';
+  }
+  function tick(ts) {
+    if (S.paused || document.hidden) { S.raf = 0; return; }
+    if (!S.last) { S.last = ts; }
+    var real = (ts - S.last) / 1000, dt = Math.min(1 / 30, real);
+    S.last = ts;
+    if (ptr.down) { placeXY(ptr.sx, ptr.sy); }
+    stepField(S.F, dt * 0.8 * (S.slowmo ? 0.25 : 1), ptr); ageBubbles(); paint();
+    A.count += 1; if (A.count >= 6) { A.count = 0; listen(); }
+    if (CLIP) { clipFrame(); } else if (SAVE.rec && SAVE.cv) { SAVE.cx.drawImage(V, 0, 0, SAVE.cv.width, SAVE.cv.height); }
+    if (S.frames % 12 === 0) { status(); }
+    S.frames += 1; if (real > 0.026) { S.slow += 1; }
+    if (S.frames >= 90) {
+      if (S.slow > 50 && S.F.n > 3000) { crowd(Math.round(S.F.n * 0.75)); say('Thinned the crowd to ' + num(S.F.n) + ' dots so the picture keeps up.', 4000); }
+      S.frames = 0; S.slow = 0;
+    }
+    S.raf = requestAnimationFrame(tick);
+  }
+  function go() { if (!S.raf && !S.paused && !document.hidden) { S.last = 0; S.raf = requestAnimationFrame(tick); } }
+  function setPaused(p) { S.paused = p; say(p ? 'Paused. Press ' + keyName('space', 'Pause') + ' to carry on.' : 'Carrying on.', p ? 0 : 1500); audioLevel(); status(); if (!p) { go(); } }
+
+  size();
+  S.F.tc = OPEN;
+  (function () { var i; for (i = 0; i < 260; i++) { stepField(S.F, 1 / 60, null); } for (i = 0; i < 50; i++) { stepField(S.F, 1 / 60, null); paint(); } }());
+  setLegend(false);
+  /* The title card: the name, what it is, and the author's line about it. It fades after a few seconds, or at the first touch or key, and the hint follows. */
+  var card = document.getElementById('card'), cardT = 0, coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var HINT = coarse ? 'Touch to press the dots away. Turn on Draw in and a touch draws them in; turn on Bubbles and it drops bubbles. Show the legend for everything else.'
+    : 'Hold the mouse button to press the dots away, or the right button to draw them in. Turn on Bubbles and a click drops bubbles. Press H, or Show the legend, for everything else.';
+  function cardOff() {
+    if (!card || card.className === 'gone') { return; }
+    clearTimeout(cardT); card.className = 'gone'; card.setAttribute('aria-hidden', 'true');
+    if (!reduce) { say(HINT, 9000); }
+  }
+  cardT = setTimeout(cardOff, reduce ? 12000 : 7000);
+  V.addEventListener('pointerdown', cardOff);
+  document.addEventListener('keydown', cardOff);
+  if (!document.documentElement.requestFullscreen) { (function () { var fr = legend.querySelector('[data-k="f"]'); if (fr && fr.parentNode) { fr.parentNode.hidden = true; } }()); }
+  if (reduce) { say('Paused. Press space or tap to set it going.', 0); }
+  go();
+
+  window.addEventListener('resize', size); window.addEventListener('resize', fitPanels);
+  window.addEventListener('resize', function () { if (clash()) { setLegend(false); S.legBack = true; } clearMarks(); });
+  document.addEventListener('visibilitychange', function () { if (A.ctx) { if (document.hidden) { A.ctx.suspend(); } else if (A.on) { A.ctx.resume(); } } go(); });
+  V.addEventListener('contextmenu', function (ev) { ev.preventDefault(); });
+  V.addEventListener('pointerdown', function (ev) {
+    if (S.paused && ev.pointerType !== 'mouse') { setPaused(false); return; }
+    ptr.sx = ev.clientX; ptr.sy = ev.clientY; placeXY(ptr.sx, ptr.sy);
+    if (S.bubbles && ev.button !== 2 && !ev.shiftKey) { bubbleAt(ptr.x, ptr.y); return; }
+    ptr.down = true; ptr.sign = ((ev.button === 2 || ev.shiftKey) !== !!S.drawIn) ? -1 : 1;
+  });
+  V.addEventListener('pointermove', function (ev) { ptr.sx = ev.clientX; ptr.sy = ev.clientY; if (ptr.down) { placeXY(ptr.sx, ptr.sy); } });
+  V.addEventListener('pointerup', function () { ptr.down = false; });
+  V.addEventListener('pointercancel', function () { ptr.down = false; });
+  V.addEventListener('pointerleave', function () { ptr.down = false; });
+  /* Room: how close a position lets others come before it presses them away, in five steps from a quarter of what it began with to four times. */
+  S.wheel = 0; S.wheelT = 0;
+  function roomStep(d) {
+    var i = Math.max(0, Math.min(ROOMS.length - 1, S.roomi + d));
+    if (i === S.roomi) { say(d < 0 ? 'Room is already as small as it goes: a quarter of what each dot began with.' : 'Room is already as large as it goes: four times what each dot began with.', 2600); return; }
+    S.roomi = i; S.F.room = ROOMS[i];
+    say(i === 2 ? 'Room as it began.' : 'Room: ' + ['a quarter of', 'half of', '', 'twice', 'four times'][i] + ' what each dot began with. ' + (i < 2 ? 'Less room packs the clumps into tight knots.' : 'More room spreads the dots out until the clumps fade.'), 3200);
+    status();
+  }
+  V.addEventListener('wheel', function (ev) {        /* one step a notch of the wheel, and not faster than one in four tenths of a second */
+    var now = performance.now();
+    ev.preventDefault();
+    S.wheel += ev.deltaMode === 1 ? ev.deltaY * 40 : ev.deltaMode === 2 ? ev.deltaY * 800 : ev.deltaY;
+    if (Math.abs(S.wheel) >= 100 && now - S.wheelT > 400) { roomStep(S.wheel < 0 ? 1 : -1); S.wheel = 0; S.wheelT = now; }
+    else if (Math.abs(S.wheel) >= 100) { S.wheel = 0; }
+  }, { passive: false });
+  keysBtn.addEventListener('click', function () { cardOff(); setLegend(legend.hidden); });
+  /* The legend is also the controls: every row can be pressed, and shows whether its option is on. */
+  /* On a phone the legend shows one part at a time, chosen by the tabs along its top; it opens on Touch and keeps the last part chosen. */
+  var legTabs = legend.querySelectorAll('.tabs button'), legParts = legend.querySelectorAll('[data-g]');
+  function legTab(g) {
+    var i;
+    S.legTab = g;
+    for (i = 0; i < legTabs.length; i++) { legTabs[i].setAttribute('aria-pressed', legTabs[i].getAttribute('data-tab') === g ? 'true' : 'false'); }
+    for (i = 0; i < legParts.length; i++) { legParts[i].classList.toggle('on', legParts[i].getAttribute('data-g') === g); }
+  }
+  (function () { var i; for (i = 0; i < legTabs.length; i++) { legTabs[i].addEventListener('click', function () { legTab(this.getAttribute('data-tab')); legend.scrollTop = 0; }); } }());
+  legTab('touch');
+  var legRows = legend.querySelectorAll('[data-s]'), legLast = '';
+  function legendState() {
+    var F = S.F, st, key, i, e, k, v, t;
+    st = { drawin: !!S.drawIn, paused: !!S.paused, slow: !!S.slowmo, held: !!F.held, follow: S.follow >= 0, zoom: S.zoom > 1, long: !!S.long, sound: !!A.on, panel: !!panel && !panel.hidden,
+      kal: !!S.kal, rec: !!(SAVE.rec || CLIP), marks: !document.body.classList.contains('nomarks'), full: !!document.fullscreenElement,
+      'v:kind': ['Ones and twos', 'Threes added', 'Threes mostly'][S.kind || 0], 'v:light': ['Amber, pale and blue', 'Visible light', 'Shifted by motion'][S.light || 0], 'v:theme': S.dark ? 'Dark' : 'Light',
+      'v:faint': ['Full', 'Fainter', 'Fainter still'][S.faint || 0], 'v:drift': F.wander ? 'Wandering' : 'On its cycle', 'v:avg': F.smooth ? 'Smoothed' : 'Square', 'v:mem': F.mem === 0 ? 'None' : 'About ' + (F.mem === 1.5 ? '2' : F.mem === 3 ? '4' : F.mem === 12 ? '15' : '45') + ' s', wear: !!S.wear, land: !!S.land, bubbles: !!S.bubbles, 'v:shape': ['Round', 'Shaped by the share', 'Stacked 4, 3, 2', 'Angled'][S.shape], 'v:angle': BANG[S.angle] + '\u00b0', 'v:circ': S.circ === 1 ? 'Set ways' : S.circ === 0 ? 'Held parallel' : 'Held, fracturing', 'v:bubk': BUBN[S.bubk], 'v:n': num(F.n), 'v:room': ROOMN[S.roomi], 'v:voice': BVOX[A.bvoice].name };
+    key = ''; for (k in st) { key += st[k] + '|'; }
+    if (key === legLast) { return; }
+    legLast = key;
+    for (i = 0; i < legRows.length; i++) {
+      e = legRows[i]; k = e.getAttribute('data-s'); v = st[k];
+      if (typeof v === 'boolean') { e.setAttribute('aria-pressed', v ? 'true' : 'false'); }
+      else { t = e.classList.contains('v') ? e : e.querySelector('.v'); if (t) { t.textContent = v; } }
+    }
+  }
+  legend.addEventListener('click', function (ev) {
+    var b = ev.target && ev.target.closest ? ev.target.closest('[data-k]') : null;
+    if (!b) { return; }
+    clearTimeout(S.legT);
+    act(b.getAttribute('data-k'), null);
+  });
+
+  var panel = document.getElementById('sound'), sndBtn = document.getElementById('snd');
+  function el(id) { return document.getElementById(id); }
+  function setPanel(open) {
+    panel.hidden = !open; sndBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); sndBtn.textContent = open ? 'Hide the sound options' : 'Sound options'; fitLast = ''; fitPanels();      /* placed once the button's new words have set the bar's height */
+    if (open && clash()) { setLegend(false); S.legBack = true; }             /* the legend steps aside, and comes back when these close */
+    else if (!open && S.legBack) { S.legBack = false; setLegend(true); }
+    clearMarks();
+  }
+  function syncPanel() {
+    el('o-on').checked = A.on; el('o-whole').checked = A.wholeOn; el('o-bvox').value = String(A.bvoice); el('o-kind').value = String(A.kind); el('o-echo').value = String(OPT.echo); el('o-level').value = String(Math.round(A.level * 100));
+    el('o-echo-out').textContent = OPT.echo + ' in 100'; status(); el('o-level-out').textContent = Math.round(A.level / 0.6 * 100) + ' in 100';
+  }
+  function soundOn(on) {
+    if (on && !A.ctx && !audioStart()) { say('Sound is not available in this browser.', 3000); syncPanel(); return; }
+    A.on = on; if (A.on && A.ctx.resume) { A.ctx.resume(); }
+    voiceKind(); audioLevel(); syncPanel();
+  }
+  sndBtn.addEventListener('click', function () { setPanel(panel.hidden); });
+  el('o-on').addEventListener('change', function () { soundOn(el('o-on').checked); });
+  el('o-whole').addEventListener('change', function () { A.wholeOn = el('o-whole').checked; say(A.wholeOn ? 'The soft hum for the whole is on: each bubble\u2019s share is heard against it.' : 'The hum for the whole is off. The bubbles keep their pitches.', 2600); });
+  el('o-bvox').addEventListener('change', function () { setBubbleVoice(+el('o-bvox').value); status(); });
+  el('o-kind').addEventListener('change', function () { A.kind = +el('o-kind').value; voiceKind(); status(); });
+  el('o-echo').addEventListener('input', function () { OPT.echo = +el('o-echo').value; voiceKind(); syncPanel(); });
+  el('o-level').addEventListener('input', function () { A.level = +el('o-level').value / 100; audioLevel(); syncPanel(); });
+  syncPanel();
+  function pointerWorld() { if (ptr.sx < 0) { ptr.sx = S.cw / S.ps / 2; ptr.sy = S.ch / S.ps / 2; } placeXY(ptr.sx, ptr.sy); }
+  document.addEventListener('keydown', function (ev) {
+    var k = ev.key, tag = ev.target && ev.target.tagName;
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) { return; }
+    if (tag === 'SELECT') { return; }
+    if (tag === 'INPUT' && (k === ' ' || k.indexOf('Arrow') === 0 || k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown')) { return; }
+    if (tag === 'BUTTON' && (k === ' ' || k === 'Enter')) { return; }
+    act(k, ev);
+  });
+  function act(k, ev) {
+    var F = S.F, i, q, d, best, dx, dy;
+    if (k === ' ') { if (ev) { ev.preventDefault(); } setPaused(!S.paused); }
+    else if (k === 'a' || k === 'A') { S.drawIn = !S.drawIn; say(S.drawIn ? 'A touch' + (coarse ? '' : ', or the left button,') + ' now draws the dots in.' : 'A touch' + (coarse ? '' : ', or the left button,') + ' presses the dots away again.', 2600); }
+    else if (k === '6') {
+      S.bubbles = !S.bubbles;
+      say(S.bubbles ? 'Bubbles on. A touch drops a bubble, and a touch on one pops it. The next holds ' + shareSay() + '.' : 'Bubbles off.' + (S.drawIn ? ' A touch draws the dots in again.' : ' A touch presses the dots away again.'), S.bubbles ? 5600 : 1800);
+    }
+    else if (k === '7') { i = 0; for (q = 0; q < FAVI.length; q++) { if (FAVI[q] > S.bubk) { i = q; break; } } S.bubk = FAVI[i]; say('The next bubble holds ' + shareSay() + '.', 3600); }      /* the next of the shares the menu had, round again after 81/1 */
+    else if (k === '9') { S.shape = (S.shape + 1) % 4; sayShape(); }      /* round, shaped by the share, stacked, angled */
+    else if (k === '/') { if (ev) { ev.preventDefault(); } S.circ = S.circ === 2 ? 0 : S.circ === 0 ? 1 : 2; sayCirc(); }
+    else if (k === '0') { S.angle = (S.angle + 1) % BANG.length; say('Angled shapes now open at ' + BANG[S.angle] + '\u00b0.', 2200); }
+    else if (k === ',' || k === '<') { roomStep(-1); }
+    else if (k === '.' || k === '>') { roomStep(1); }
+    else if (k === 'fewer' || k === 'more') {
+      best = 0; for (i = 0; i < CROWDS.length; i++) { if (Math.abs(CROWDS[i] - F.n) < Math.abs(CROWDS[best] - F.n)) { best = i; } }
+      best = Math.max(0, Math.min(CROWDS.length - 1, best + (k === 'more' ? 1 : -1)));
+      crowd(CROWDS[best]); say(num(F.n) + ' dots.', 1800);
+    }
+    else if (k === 'o' || k === 'O') { setPanel(panel.hidden); }
+    else if (k >= '1' && k <= '5') { crowd(CROWDS[+k - 1]); say(num(F.n) + ' dots.', 1800); }
+    else if (k === 's' || k === 'S') { S.slowmo = !S.slowmo; say(S.slowmo ? 'A quarter of the speed.' : 'Back to full speed.', 1800); }
+    else if (k === 'ArrowRight') {
+      if (ev) { ev.preventDefault(); }
+      if (S.paused) { for (q = 0; q < 12; q++) { stepField(F, 0.8 / 60, null); paint(); } say('Stepped on a moment. Press ' + keyName('space', 'Pause') + ' to carry on.', 0); }
+      else { say(coarse ? 'Pause first, then Step moves it on.' : 'Pause first with space, then the right arrow steps it forward.', 2500); }
+    }
+    else if (k === 'd' || k === 'D') { F.held = !F.held; say(F.held ? 'Drift held: ' + mood() + '. It stays this way until you press ' + keyName('D', 'Hold the drift') + ' again.' : 'The drift goes on.', F.held ? 4500 : 1800); }
+    else if (k === 'g' || k === 'G') {
+      F.mem = F.mem === 0 ? 1.5 : F.mem === 1.5 ? 3 : F.mem === 3 ? 12 : F.mem === 12 ? 36 : 0;
+      say(F.mem === 0 ? 'The ground remembers nothing. Each dot is drawn only by where the others are now.' : 'The ground remembers where dots have been, fading over about ' + (F.mem === 1.5 ? '2' : F.mem === 3 ? '4' : F.mem === 12 ? '15' : '45') + ' seconds. Each dot is drawn by where the others have been lately.', 4200);
+    }
+    else if (k === 'u' || k === 'U') {
+      S.land = !S.land;
+      if (S.land && !(S.landOf >= 0 && S.landOf < F.n)) {
+        pointerWorld(); best = 1e9;
+        for (i = 0; i < F.n; i++) {
+          dx = F.x[i] - ptr.x; if (dx > F.w / 2) { dx -= F.w; } else if (dx < -F.w / 2) { dx += F.w; }
+          dy = F.y[i] - ptr.y; if (dy > F.h / 2) { dy -= F.h; } else if (dy < -F.h / 2) { dy += F.h; }
+          d = dx * dx + dy * dy; if (d < best) { best = d; S.landOf = i; }
+        }
+      }
+      say(S.land ? 'The ground for the ringed dot: amber where it is drawn, blue where it is turned away.' + (coarse ? ' Another colour and The opposite colour show it for other dots.' : ' Q shows it for a dot of another colour, E for the opposite colour.') : 'The ground for one dot is hidden.', 5600);
+      if (S.paused) { paint(); }
+    }
+    else if (k === 'q' || k === 'Q') {
+      if (!(S.landOf >= 0 && S.landOf < F.n)) { S.landOf = 0; }
+      q = (Math.atan2(F.s1[S.landOf], F.c1[S.landOf]) / 6.283185307 + 1.31) % 1; best = 9; dx = S.landOf;      /* about a third of the way round the ring of characters */
+      for (i = 0; i < F.n; i++) { d = Math.abs((Math.atan2(F.s1[i], F.c1[i]) / 6.283185307 + 2) % 1 - q); if (d > 0.5) { d = 1 - d; } d += Math.random() * 0.01; if (d < best) { best = d; dx = i; } }
+      S.landOf = dx; S.land = true; say('The same ground, for a dot about a third of the way round the ring of colours. The ring has moved to it.', 3600);
+      if (S.paused) { paint(); }
+    }
+    else if (k === 'e' || k === 'E') {
+      if (!(S.landOf >= 0 && S.landOf < F.n)) { S.landOf = 0; }
+      q = (Math.atan2(F.s1[S.landOf], F.c1[S.landOf]) / 6.283185307 + 1.5) % 1; best = 9; dx = S.landOf;       /* straight across the ring of characters */
+      for (i = 0; i < F.n; i++) { d = Math.abs((Math.atan2(F.s1[i], F.c1[i]) / 6.283185307 + 2) % 1 - q); if (d > 0.5) { d = 1 - d; } if (d < best) { best = d; dx = i; } }
+      S.landOf = dx; S.land = true; say('The same ground, for a dot of the opposite colour. Where the first dot was drawn, this one is turned away, except for the part that comes from the twos, which stays the same. The ring has moved to it.', 5600);
+      if (S.paused) { paint(); }
+    }
+    else if (k === 'y' || k === 'Y') { S.wear = !S.wear; say(S.wear ? 'The ground is shown, shaded where dots crowd. With a memory (G), it shows where they have crowded lately.' : 'The ground is hidden.', 3600); }
+    else if (k === 'w' || k === 'W') {
+      if (!F.wander && F.mix === 0) { F.wx = wave1(F.tc) - 1.25; F.wx2 = wave2(F.tc) - 2.2; F.wx3 = wave3(F.tc) - 1.7; F.w3 = F.tc * 0.023 + 2; }             /* it sets off from wherever the cycle has it */
+      F.wander = !F.wander;
+      say(F.wander ? 'The drift now wanders by chance, over the same range at about the same pace. It will never come round the same way twice.' : 'The drift is back on its cycle, swinging between streaming and gathering about every three minutes.', 4000);
+    }
+    else if (k === 'j' || k === 'J') {
+      F.smooth = !F.smooth;
+      say(F.smooth ? 'Smoothed: each dot reads a rounder patch round it, which leaves no grid.' : 'Square, as the piece began: each dot reads a square patch round it, which can leave a fine grid where dots press away from their own kind.', 4200);
+    }
+    else if (k === '[' || k === ']') {
+      q = wave1(F.tc); d = F.tc; F.tc = Math.max(0, F.tc + (k === ']' ? 15 : -15));
+      if (F.wander) { F.wx += wave1(F.tc) - q; F.wx2 += wave2(F.tc) - wave2(d); F.wx3 += wave3(F.tc) - wave3(d); F.w3 += (F.tc - d) * 0.023; }
+      say((F.wander ? 'Pushed the drift ' + (k === ']' ? 'forward' : 'back') : 'Moved ' + (k === ']' ? 'forward' : 'back') + ' through the cycle') + ': ' + mood() + '.', 2600);
+    }
+    else if (k === 'v' || k === 'V') {
+      if (S.follow >= 0) { S.follow = -1; clearTrails(); say('Back to watching from outside.', 1800); }
+      else {
+        pointerWorld(); best = 1e9;
+        for (i = 0; i < F.n; i++) {
+          dx = F.x[i] - ptr.x; if (dx > F.w / 2) { dx -= F.w; } else if (dx < -F.w / 2) { dx += F.w; }
+          dy = F.y[i] - ptr.y; if (dy > F.h / 2) { dy -= F.h; } else if (dy < -F.h / 2) { dy += F.h; }
+          d = dx * dx + dy * dy; if (d < best) { best = d; S.follow = i; }
+        }
+        clearTrails(); say('Riding along with the ringed dot: it stays still, and everything else moves round it. Press ' + keyName('V', 'Ride along') + ' to come back.', 5000);
+      }
+      if (S.paused) { paint(); }
+    }
+    else if (k === 'z' || k === 'Z') {
+      if (S.zoom > 1) { S.zoom = 1; say('Zoomed back out.', 1500); }
+      else { pointerWorld(); S.zx = ptr.x; S.zy = ptr.y; S.zoom = 3; say('Zoomed in three times. Press ' + keyName('Z', 'Zoom') + ' to go back out.', 2500); }
+      clearTrails(); if (S.paused) { paint(); }
+    }
+    else if (k === 'b' || k === 'B') {
+      S.faint = ((S.faint || 0) + 1) % 3;
+      say(S.faint === 0 ? 'Dots at full strength.' : S.faint === 1 ? 'Dots fainter, so the crowded middles of clumps keep their colour.' : 'Dots fainter still.', 2400);
+    }
+    else if (k === 'l' || k === 'L') { document.documentElement.setAttribute('data-theme', S.dark ? 'light' : 'dark'); say(S.dark ? 'Ink on paper.' : 'Light on dark.', 1800); }
+    else if (k === 'm' || k === 'M') {
+      soundOn(!A.on);
+      if (!A.ctx) { return; }
+      say(A.on ? 'Sound on. Each bubble sounds its share against a soft hum for the whole, in tune while it holds its share. Each clump sounds a note of its colour, and the rush of air is the streaming between them.' : 'Sound off.', A.on ? 6500 : 1500);
+    }
+    else if (k === 'c' || k === 'C') {
+      S.kind = ((S.kind || 0) + 1) % 3;
+      F.k1 = S.kind === 2 ? 0.3 : 1; F.k2 = S.kind === 2 ? 0.3 : 1; F.k3 = S.kind === 0 ? 0 : S.kind === 1 ? 0.8 : 1.2;
+      say(S.kind === 0 ? 'Kin in ones and twos, as at the start: a dot\u2019s own colour, and at times the colour straight across the ring.' : S.kind === 1 ? 'Threes added: colours a third of the way round the ring now count as kin too.' : 'Threes mostly: kin by thirds does most of the drawing.', 4200);
+    }
+    else if (k === 'Delete' || k === 'Backspace') { if (ev) { ev.preventDefault(); } popAll(); }
+    else if (k === 'n' || k === 'N') {
+      setBubbleVoice((A.bvoice + 1) % BVOX.length); syncPanel();
+      say(BVOX[A.bvoice].say, 3200);
+    }
+    else if (k === '-' || k === '=' || k === '+') {
+      A.level = Math.max(0.03, Math.min(0.6, A.level * (k === '-' ? 0.7 : 1 / 0.7))); audioLevel(); syncPanel();
+      say(k === '-' ? 'Quieter.' : 'Louder.', 1200);
+    }
+    else if (k === 't' || k === 'T') { S.long = !S.long; say(S.long ? 'Longer trails.' : 'Shorter trails.', 1800); }
+    else if (k === 'h' || k === 'H') { setLegend(legend.hidden); }
+    else if (k === 'x' || k === 'X') {
+      S.light = ((S.light || 0) + 1) % 3;
+      say(S.light === 0 ? 'Colours: amber, pale and blue, each dot in the colour of its own character, with no shift.' : S.light === 1 ? 'Visible light: each dot a rainbow colour of its own, with no shift.' : 'Shifted by motion: dots coming toward the middle of the screen turn bluer, and dots going away turn redder; the rings of bubbles shift the same way as they turn and drift. Press ' + keyName('V', 'Ride along') + ' to watch from one dot instead.', S.light === 2 ? 6000 : 3000);
+    }
+    else if (k === '8' || k === '*') { S.kal = !S.kal; show(); say(S.kal ? 'Kaleidoscope: one twelfth of the picture, turned and mirrored six times round. Most of what you see isn\u2019t where anything really is.' : 'The picture as it really is.', 4500); }
+    else if (k === 'p' || k === 'P') { still(); }
+    else if (k === 'r' || k === 'R') { record(); }
+    else if (k === 'i' || k === 'I') { document.body.classList.toggle('nomarks'); say(document.body.classList.contains('nomarks') ? 'Status marks hidden.' : 'Status marks shown.', 1500); }
+    else if (k === 'f' || k === 'F') {
+      try {
+        var r = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+        if (r && r.catch) { r.catch(function () { say('Full screen is not available here.', 2500); }); }
+      } catch (err) { say('Full screen is not available here.', 2500); }
+    }
+    status();
+  }
+  if (window.matchMedia) { var mq = window.matchMedia('(prefers-color-scheme: dark)'); if (mq.addEventListener) { mq.addEventListener('change', theme); } }
+  if ('MutationObserver' in window) { new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); }
+})();
+</script>
+
+
+</body></html>

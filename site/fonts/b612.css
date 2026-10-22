@@ -1,0 +1,10 @@
+/* B612 and B612 Mono, kept with the site so that it reads the same with no connection. The files are the ones the published pages
+   loaded from Google Fonts on 14 October 2026 (the Latin set, version 13 and 16). Licence: SIL Open Font License 1.1, in OFL.txt. */
+@font-face { font-family: "B612"; font-style: normal; font-weight: 400; font-display: swap; src: url("B612-Regular.woff2") format("woff2"); }
+@font-face { font-family: "B612"; font-style: normal; font-weight: 700; font-display: swap; src: url("B612-Bold.woff2") format("woff2"); }
+@font-face { font-family: "B612"; font-style: italic; font-weight: 400; font-display: swap; src: url("B612-Italic.woff2") format("woff2"); }
+@font-face { font-family: "B612"; font-style: italic; font-weight: 700; font-display: swap; src: url("B612-BoldItalic.woff2") format("woff2"); }
+@font-face { font-family: "B612 Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("B612Mono-Regular.woff2") format("woff2"); }
+@font-face { font-family: "B612 Mono"; font-style: normal; font-weight: 700; font-display: swap; src: url("B612Mono-Bold.woff2") format("woff2"); }
+@font-face { font-family: "B612 Mono"; font-style: italic; font-weight: 400; font-display: swap; src: url("B612Mono-Italic.woff2") format("woff2"); }
+@font-face { font-family: "B612 Mono"; font-style: italic; font-weight: 700; font-display: swap; src: url("B612Mono-BoldItalic.woff2") format("woff2"); }
