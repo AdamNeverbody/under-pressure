@@ -17,9 +17,12 @@ html, body { height: 100%; margin: 0; background: var(--bg); overflow: hidden; }
 canvas { position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 #hint {
   position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); top: calc(28px + env(safe-area-inset-top, 0px)); margin: 0; max-width: 46rem;
-  font: 0.9rem/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
-  opacity: 0.85; transition: opacity 1.2s; pointer-events: none; text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+  width: fit-content; box-sizing: border-box; padding: 0.3rem 0.65rem; border-radius: 8px;      /* on a soft plate of the ground's colour, so it reads over the moving picture */
+  background: var(--bg); background: color-mix(in srgb, var(--bg) 80%, transparent);
+  font: 1rem/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
+  opacity: 1; transition: opacity 1.2s; pointer-events: none;
 }
+#hint:empty { padding: 0; background: none; }
 #hint.gone { opacity: 0; }
 /* status marks at the edges: the cycle along the top, the sound along the bottom, and what is switched on at the top right */
 #cycle { position: fixed; left: 0; right: 0; top: 0; height: 3px; background: var(--line); opacity: 0.85; pointer-events: none; }
@@ -32,12 +35,22 @@ canvas { position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: b
 #edge-bottom.on { opacity: 0.4; }
 #edge-bottom.beat { animation: beat var(--beat, 0.5s) linear infinite; }
 @keyframes beat { 0% { opacity: 0.9; } 55% { opacity: 0.18; } 100% { opacity: 0.18; } }
-#tags { position: fixed; right: 12px; top: calc(28px + env(safe-area-inset-top, 0px)); margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; pointer-events: none; }
+#tags { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); top: calc(28px + env(safe-area-inset-top, 0px)); margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; pointer-events: none; }
 #tags li { font: 0.74rem/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); padding: 0.1rem 0.5rem; border: 1px solid var(--line); border-radius: 999px;
   background: var(--bg); background: color-mix(in srgb, var(--bg) 70%, transparent); opacity: 0.8; }
 body.nomarks #cycle, body.nomarks #edge-bottom, body.nomarks #tags { display: none; }
 @media (prefers-reduced-motion: reduce) { #edge-bottom.beat { animation: none; opacity: 0.4; } #cycle i { transition: none; } }
-#bar { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; gap: 8px; pointer-events: none; }
+#bar { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; pointer-events: none; }
+/* One row of places that never move or wrap; the row above it shows only for bubbles, and while a clip records. */
+#bar .brow { display: flex; flex-wrap: nowrap; gap: 6px; max-width: 100%; }
+#bar .brow[hidden] { display: none; }
+#bar #toprow { flex-wrap: wrap-reverse; }      /* the row above grows upward a line where it lacks room, and never moves the row below */
+#toprow > * { flex: none; }
+#bar #toprow .slide { flex-shrink: 1; min-width: 0; }
+#bar #toprow .slide label { white-space: nowrap; }
+#bar #toprow .slide input { min-width: 0; }
+#bar #toprow .slide { flex-wrap: wrap; }
+#bar #toprow .slide input { flex: 1 1 4.5rem; max-width: 9.5rem; }      /* where it would be short, the slider goes under its words */
 #bar button { pointer-events: auto; }
 #bar button {
   min-height: 40px; padding: 0.35rem 0.8rem;
@@ -45,9 +58,36 @@ body.nomarks #cycle, body.nomarks #edge-bottom, body.nomarks #tags { display: no
   background: var(--bg); background: color-mix(in srgb, var(--bg) 85%, transparent); border: 1px solid var(--line); border-radius: 6px;
 }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+#bar .main button { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 48px; min-width: 46px; padding: 4px 9px; font-size: 0.8rem; line-height: 1.1; white-space: nowrap; }
+#bar .main svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+#bar .seg { display: flex; }
+#bar .seg button { border-radius: 0; margin-left: -1px; }
+#bar .seg button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; }
+#bar .seg button:last-child, #bar .seg #spellb { border-radius: 0 6px 6px 0; }      /* Spell ends the group where Wave is not on the bar */
+#bar .seg button[aria-pressed="true"] { position: relative; }      /* its amber edge shows over its neighbours' */
+#pauseb .two { display: grid; }      /* Pause, or Go while paused, in the same room, so nothing beside it moves */
+#pauseb .two > span { grid-area: 1 / 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+#pauseb .go, #pauseb.paused .stop { visibility: hidden; }
+#pauseb.paused .go { visibility: visible; }
+#bar .main .wide { display: none; }
+@media (min-width: 43em) { #bar .main .wide { display: inline-flex; } #bar .seg #spellb { border-radius: 0; } }      /* room for Wave, Slower and Kaleidoscope (Wave as wide as Spell or a little wider: about 645 px of row, against 656 of room at 688 px) */
+@media (max-width: 29.25em) { #bar .main button { padding: 4px 5px; } }      /* a phone: the row fits without squeezing its words */
+@media (max-width: 25.5em) {      /* the smallest phones: the row still fits */
+  #bar .brow { gap: 4px; }
+  #bar .main button { min-height: 44px; min-width: 40px; padding: 3px 3px; font-size: 0.72rem; }
+  #bar .main svg { width: 16px; height: 16px; }
+}
+@media (max-width: 22em) {      /* narrower still (or large text): closer to the edges */
+  #bar { left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); }
+  #bar .brow { gap: 2px; }
+  #bar .main button { min-width: 36px; padding: 3px 2px; font-size: 0.66rem; }
+}
+#bar .main, #bar .seg { flex-wrap: wrap; }      /* where even the closest style cannot fit (a notch, zoom, very large text), the row wraps rather than go off the screen */
+#popall[aria-disabled="true"] { opacity: 0.45; }      /* it keeps its place with nothing to pop */
+#keys[aria-expanded="true"] { border-color: var(--a); box-shadow: inset 0 -3px 0 var(--a); }
 #sound {
-  position: fixed; right: 16px; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box;
-  width: min(23rem, calc(100vw - 32px)); max-height: calc(100vh - 130px); overflow: auto; padding: 0.7rem 0.95rem;
+  position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box;
+  width: min(23rem, calc(100vw - max(16px, env(safe-area-inset-left, 0px)) - max(16px, env(safe-area-inset-right, 0px)))); max-height: calc(100vh - 130px); overflow: auto; padding: 0.7rem 0.95rem;
   font: 0.86rem/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
   background: var(--bg); background: color-mix(in srgb, var(--bg) 92%, transparent); border: 1px solid var(--line); border-radius: 8px;
 }
@@ -87,27 +127,35 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   #legend .row { grid-template-columns: 5.4rem 1fr auto; }
   #legend, #sound { max-height: calc(100vh - 176px); }               /* leaves the message line its room above them */
   @supports (height: 100dvh) { #legend, #sound { max-height: calc(100dvh - 176px); } }
-  #still, #rec, #snd { display: none; }
-  #rec[aria-pressed="true"] { display: inline-block; }
 }
 #legend, #bar button, #sound { touch-action: manipulation; }
 #card { position: fixed; left: 50%; top: 44%; transform: translate(-50%, -50%); box-sizing: border-box; width: min(35rem, calc(100vw - 40px)); margin: 0; text-align: center;
   color: var(--ink); pointer-events: none; opacity: 1; transition: opacity 1.8s ease; padding: 1.5rem 1.6rem 1.35rem; border: 1px solid var(--line); border-radius: 10px;
   background: var(--bg); background: color-mix(in srgb, var(--bg) 84%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 #card.gone { opacity: 0; }
+#card:not([data-placed]) { visibility: hidden; }      /* shown once the page has placed it */
+#card:not(.gone) ~ #tags { visibility: hidden; }      /* the marks wait until the card has gone */
 #card h1 { margin: 0 0 0.8rem; font: 700 clamp(2rem, 7vw, 3.4rem)/1.08 var(--display); letter-spacing: 0.01em; text-wrap: balance; }
 #card .what { margin: 0 auto 1rem; max-width: 31rem; font: 1rem/1.55 var(--ui); text-wrap: pretty; }
 #card .his { margin: 0; font: italic 0.98rem/1.45 var(--display); color: var(--a); }
 #card .his span { display: block; margin-top: 0.25rem; font: 0.8rem/1.4 var(--ui); font-style: normal; color: var(--ink); opacity: 0.75; letter-spacing: 0.02em; }
 @media (prefers-reduced-motion: reduce) { #card { transition: none; } }
+@media (max-width: 340px), (max-height: 600px) {      /* a small screen: the card a little closer set, so it fits above the bar */
+  #card { padding: 1rem 1.1rem 0.9rem; }
+  #card h1 { font-size: clamp(1.6rem, 7vw, 2.4rem); margin-bottom: 0.5rem; }
+  #card .what { font-size: 0.92rem; line-height: 1.45; margin-bottom: 0.7rem; }
+  #card .his { font-size: 0.9rem; }
+}
 #bar button[aria-pressed="true"] { border-color: var(--a); box-shadow: inset 0 -3px 0 var(--a); }
 #bar .slide { pointer-events: auto; display: inline-flex; align-items: center; gap: 0.5rem; min-height: 40px; box-sizing: border-box; padding: 0.2rem 0.7rem; font: 0.86rem system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
   background: var(--bg); background: color-mix(in srgb, var(--bg) 85%, transparent); border: 1px solid var(--a); border-radius: 6px; touch-action: manipulation; }
 #bar .slide b { display: inline-block; min-width: 2.7rem; font-variant-numeric: tabular-nums; }
 #bar .slide input { width: 9.5rem; accent-color: var(--a); }
-#bar select { pointer-events: auto; min-height: 40px; padding: 0.35rem 0.6rem; font: 0.86rem system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); cursor: pointer;
-  background: var(--bg); background: color-mix(in srgb, var(--bg) 85%, transparent); border: 1px solid var(--a); border-radius: 6px; touch-action: manipulation; }
 #legend .about { margin: 0 0 0.6rem; max-width: 44rem; opacity: 0.9; }
+#legend .menus { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin: 0.1rem 0.45rem 0.5rem; font-size: 0.82rem; }
+#legend .menus label { display: inline-flex; align-items: center; gap: 0.4rem; }
+#legend .menus select { min-height: 36px; padding: 0.25rem 0.5rem; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--a); border-radius: 6px; cursor: pointer; }
+@media (pointer: coarse) { #legend .menus select { min-height: 44px; } }
 #legend .rows h3 { margin: 0.85rem 0 0.3rem 0.45rem; font: 700 0.74rem/1.2 var(--ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--a); }
 #legend .rows > li:first-child h3 { margin-top: 0.15rem; }
 #legend .rows .note { margin: 0 0.45rem 0.4rem; font-size: 0.8rem; line-height: 1.4; opacity: 0.85; }
@@ -132,7 +180,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   #legend .rows h3 { display: none; }      /* the tab names the part */
   #legend .rows .note { margin-top: 0.1rem; }
 }
-@media (hover: none) and (pointer: coarse) {      /* a touch screen: each row is pressed, so the keyboard's keys are not shown */
+@media (pointer: coarse) {      /* a touch screen: each row is pressed, so the keyboard's keys are not shown (the same test as the messages') */
   #legend button.row { grid-template-columns: 1fr auto; }
   #legend button.row .k { display: none; }
   #legend button.row .d, #legend button.row .v { grid-column: 1; }
@@ -154,19 +202,45 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
 <div id="cycle" aria-hidden="true"><span class="l">streaming</span><span class="r">gathering</span><i id="cyc"></i></div>
 <div id="edge-bottom" aria-hidden="true"></div>
 <ul id="tags" aria-label="Options in effect"></ul>
+<div id="bar">
+  <div class="brow" id="toprow" hidden>
+    <span id="bubkw" class="slide" hidden><label for="bubk">holding <b id="bubkv">1/3</b></label><input type="range" id="bubk" min="0" max="192" step="1" value="87" aria-label="How full a bubble tries to be, from 1/89 to 89/1, compared with how many dots the same space holds on average" aria-valuetext="1/3"></span>
+    <button type="button" id="popall" hidden>Pop all</button>
+    <button type="button" id="rec" aria-pressed="false" hidden>Record a clip</button>
+  </div>
+  <div class="brow main">
+    <div class="seg" role="group" aria-label="What a touch does">
+      <button type="button" id="pressb" aria-pressed="true"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="1.6"/><path d="M9 5.5V1.5M9 12.5v4M5.5 9h-4M12.5 9h4M7 3.5 9 1.5l2 2M7 14.5l2 2 2-2M3.5 7 1.5 9l2 2M14.5 7l2 2-2 2"/></svg><span>Press away</span></button>
+      <button type="button" id="drawb" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="1.6"/><path d="M9 1.5v4M9 16.5v-4M1.5 9h4M16.5 9h-4M7 3.5l2 2 2-2M7 14.5l2-2 2 2M3.5 7l2 2-2 2M14.5 7l-2 2 2 2"/></svg><span>Draw in</span></button>
+      <button type="button" id="bubb" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="7" cy="10" r="5.2"/><circle cx="13.6" cy="4.6" r="2.6"/></svg><span>Bubbles</span></button>
+      <button type="button" id="spellb" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1.8v4.4M9 11.8v4.4M1.8 9h4.4M11.8 9h4.4M4.2 4.2l2.4 2.4M11.4 11.4l2.4 2.4M4.2 13.8l2.4-2.4M11.4 6.6l2.4-2.4"/></svg><span>Spell</span></button>
+      <button type="button" id="waveb" class="wide" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="1.3"/><path d="M5.2 6.1a4.6 4.6 0 0 0 0 5.8M12.8 6.1a4.6 4.6 0 0 1 0 5.8M2.6 3.9a8 8 0 0 0 0 10.2M15.4 3.9a8 8 0 0 1 0 10.2"/></svg><span>Wave</span></button>
+    </div>
+    <button type="button" id="pauseb"><span class="two"><span class="stop"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M6 3.5v11M12 3.5v11"/></svg>Pause</span><span class="go"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M5.5 3.2v11.6L15 9z"/></svg>Go</span></span></button>
+    <button type="button" id="slowb" class="wide" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4.5 1.8h9M4.5 16.2h9M5.5 1.8c0 4 7 4.6 7 7.2s-7 3.2-7 7.2M12.5 1.8c0 4-7 4.6-7 7.2s7 3.2 7 7.2"/></svg><span>Slower</span></button>
+    <button type="button" id="kalb" class="wide" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 1.5 15.5 5.25v7.5L9 16.5 2.5 12.75v-7.5zM9 1.5v15M2.5 5.25l13 7.5M15.5 5.25l-13 7.5"/></svg><span>Kaleidoscope</span></button>
+    <button type="button" id="soundb" aria-pressed="false"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2.5 7h3l4-3.5v11l-4-3.5h-3zM12.2 6.3a3.8 3.8 0 0 1 0 5.4M14.3 4.2a6.8 6.8 0 0 1 0 9.6"/></svg><span>Sound</span></button>
+    <button type="button" id="keys" aria-expanded="false" aria-controls="legend"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 5h12M3 9h12M3 13h12"/></svg><span>More</span></button>
+  </div>
+</div>
 <div id="legend" role="region" aria-label="Legend and controls. Each row can be pressed, and does what its key does." hidden>
-  <div class="tabs" role="group" aria-label="Parts of the legend"><button type="button" data-tab="about" aria-pressed="false">About</button><button type="button" data-tab="touch" aria-pressed="false">Touch</button><button type="button" data-tab="bubbles" aria-pressed="false">Bubbles</button><button type="button" data-tab="time" aria-pressed="false">Time</button><button type="button" data-tab="dots" aria-pressed="false">Dots</button><button type="button" data-tab="drift" aria-pressed="false">Drift</button><button type="button" data-tab="ground" aria-pressed="false">Ground</button><button type="button" data-tab="looking" aria-pressed="false">Looking</button><button type="button" data-tab="sound" aria-pressed="false">Sound</button><button type="button" data-tab="saving" aria-pressed="false">Saving</button></div>
-  <p class="about" data-g="about">Each dot is a position with a character of its own, shown by its colour, and no two are alike. Each is drawn toward others, but not evenly: one can be drawn toward another that isn’t drawn back. Any two that come too close press apart. Nothing in the rules says what shapes to make. Every shape you see forms by itself, and none of them lasts. Press any row below, or its key, to try it.</p>
+  <div class="tabs" role="group" aria-label="Parts of the legend"><button type="button" data-tab="about" aria-pressed="false">About</button><button type="button" data-tab="touch" aria-pressed="false">Touch</button><button type="button" data-tab="bubbles" aria-pressed="false">Bubbles</button><button type="button" data-tab="spells" aria-pressed="false">Spells</button><button type="button" data-tab="waves" aria-pressed="false">Waves</button><button type="button" data-tab="time" aria-pressed="false">Time</button><button type="button" data-tab="dots" aria-pressed="false">Dots</button><button type="button" data-tab="drift" aria-pressed="false">Drift</button><button type="button" data-tab="ground" aria-pressed="false">Ground</button><button type="button" data-tab="looking" aria-pressed="false">Looking</button><button type="button" data-tab="sound" aria-pressed="false">Sound</button><button type="button" data-tab="saving" aria-pressed="false">Saving</button></div>
+  <p class="about" data-g="about">Each dot is a position with a character of its own, shown by its colour, and no two are alike. Each is drawn toward others, but not evenly: one can be drawn toward another that isn’t drawn back. Any two that come too close press apart. Nothing in the rules says what shapes to make. Every shape you see forms by itself, and none of them lasts. Press any row below<span class="mouse">, or its key,</span> to try it.</p>
   <ul class="rows">
     <li data-g="touch"><h3>Touch</h3><div class="row"><span class="k keep">Touch<span class="mouse">, or hold the left button</span></span><span class="d"><b>Press away.</b> The dots near that spot are pressed away from it.</span></div></li>
     <li class="row mouse" data-g="touch"><span class="k">Hold the right button</span><span class="d"><b>Draw in.</b> The dots near that spot are drawn in toward it.</span></li>
-    <li data-g="touch"><button type="button" class="row" data-k="a" data-s="drawin" aria-pressed="false"><span class="k"><kbd>A</kbd></span><span class="d"><b>Swap to draw in.</b> A touch<span class="mouse">, or the left button,</span> draws the dots in instead of pressing them away. Press again to swap back. The Draw in button does the same.</span></button></li>
-    <li data-g="bubbles"><h3>Bubbles</h3><button type="button" class="row" data-k="6" data-s="bubbles" aria-pressed="false"><span class="k"><kbd>6</kbd></span><span class="d"><b>Bubbles.</b> With this on, a touch drops a bubble, and a touch on a bubble, or close to a small one, pops it; Pop all pops every one. A bubble keeps a share of dots inside it: the number written on it. With too many, it presses some out; with too few, it draws more in. Its inner and outer parts each keep half the share, and the dashes on their rings turn as fast as the dots there go round. Its rings take the colour of the dots it holds, and on Shifted by motion the part of a ring coming toward the middle of the screen turns bluer and the part going away turns redder, as the ring turns and the bubble drifts. It moves with the dots it holds, and bubbles that bump ease apart. Eight drops at most (a shape counts as one): the next pops the oldest. The Bubbles button and the menus beside it do the same.</span></button></li>
-    <li data-g="bubbles"><button type="button" class="row" data-k="7" data-s="v:bubk"><span class="k"><kbd>7</kbd></span><span class="d"><b>Share.</b> How full the next bubble tries to be, compared with how many dots the same space holds on average. 1/3 means a third as many, 3/1 three times as many, and 3/3 just as many. Slide it anywhere from 1/89, nearly empty, to 89/1, which draws in all it can; the 7 key jumps between the shares used most. Some are one share written two ways, like 1/9 and 9/81. Bubbles already there keep their own.</span><span class="v"></span></button></li>
+    <li data-g="touch"><button type="button" class="row" data-k="a" data-s="drawin" aria-pressed="false"><span class="k"><kbd>A</kbd></span><span class="d"><b>Swap to draw in.</b> A touch<span class="mouse">, or the left button,</span> draws the dots in instead of pressing them away. Press again to swap back. On the bar, Draw in chooses it and Press away swaps back.</span></button></li>
+    <li data-g="bubbles"><h3>Bubbles</h3><button type="button" class="row" data-k="6" data-s="bubbles" aria-pressed="false"><span class="k"><kbd>6</kbd></span><span class="d"><b>Bubbles.</b> With this on, a touch drops a bubble, and a touch on a bubble, or close to a small one, pops it; Pop all pops every one. A bubble keeps a share of dots inside it: the number written on it. With too many, it presses some out; with too few, it draws more in. Its inner and outer parts each keep half the share, and the dashes on their rings turn as fast as the dots there go round. Its rings take the colour of the dots it holds, and on Shifted by motion the part of a ring coming toward the middle of the screen turns bluer and the part going away turns redder, as the ring turns and the bubble drifts. It moves with the dots it holds, and bubbles that bump ease apart. Eight drops at most (a shape counts as one): the next pops the oldest. The Bubbles button turns it on, and Press away or Draw in turns it off. The menus here choose the shape, the angle, the circuits and the ground inside the bubble: flat, a sinkhole that draws its dots toward the middle, a mountain that presses them away from it, or a sinkhole in a mountain, drawing in near the middle and pressing out round it. Each is steepest at the middle and level at the rim, and a sinkhole keeps three quarters of its share in its inner half, a mountain a quarter.</span></button></li>
+    <li data-g="bubbles" class="menus"><label>Shape <select id="bshape" aria-label="The shape a touch lays down"><option value="0" selected>round</option><option value="1">shaped</option><option value="2">stacked</option><option value="3">angled</option></select></label><label>Angle <select id="bangle" aria-label="The angle between an angled shape's two arms"><option value="0">at 60°</option><option value="1" selected>at 90°</option><option value="2">at 120°</option><option value="3">at 150°</option></select></label><label>Circuits <select id="bcirc" aria-label="Circuits: how a bubble goes round, and how it ends"><option value="2" selected>held, fracturing</option><option value="0">held parallel</option><option value="1">set ways</option></select></label><label>Ground <select id="bground" aria-label="Ground: the ground inside a bubble"><option value="0" selected>flat</option><option value="1">a sinkhole</option><option value="2">a mountain</option><option value="3">a sinkhole in a mountain</option></select></label></li>
+    <li data-g="bubbles"><button type="button" class="row" data-k="7" data-s="v:bubk"><span class="k"><kbd>7</kbd></span><span class="d"><b>Share.</b> How full the next bubble tries to be, compared with how many dots the same space holds on average. 1/3 means a third as many, 3/1 three times as many, and 3/3 just as many. Slide it anywhere from 1/89, nearly empty, to 89/1, which draws in all it can<span class="mouse">; the 7 key jumps between the shares used most</span>. Some are one share written two ways, like 1/9 and 9/81. Bubbles already there keep their own.</span><span class="v"></span></button></li>
     <li data-g="bubbles"><button type="button" class="row" data-k="9" data-s="v:shape"><span class="k"><kbd>9</kbd></span><span class="d"><b>Shape.</b> What a touch lays down.<br><i>Round:</i> one bubble.<br><i>Shaped:</i> little bubbles set out by the share’s two numbers, the first along the way the dots are moving and the second across, so 9/1 is a line of nine, 3/3 a square of nine and 3/2 a block of six. A share with a number over 9 drops one round bubble.<br><i>Stacked:</i> rows of 4, 3 and 2, standing on the bottom row.<br><i>Angled:</i> a corner with two arms of four (Angle sets how wide it opens).<br>Each little bubble holds the share, goes round, and pops or breaks on its own. With Set ways chosen under Circuits, neighbours are set going round opposite ways, like gears.</span><span class="v"></span></button></li>
     <li data-g="bubbles"><button type="button" class="row" data-k="0" data-s="v:angle"><span class="k"><kbd>0</kbd></span><span class="d"><b>Angle.</b> How wide an angled shape’s two arms open: 60, 90, 120 or 150 degrees.</span><span class="v"></span></button></li>
     <li data-g="bubbles"><button type="button" class="row" data-k="/" data-s="v:circ"><span class="k"><kbd>/</kbd></span><span class="d"><b>Circuits.</b> How a bubble goes round, and how it ends. Each choice is for the bubbles you drop next.<br><i>Held, fracturing</i> (the first choice): a bubble has no way round of its own. It goes the way its dots are going round together, the parallel they hold between them, and any dot that strays is nudged back toward it. When their straying outweighs what they share, it breaks into three smaller bubbles, each with a third of its room, which keep its share and go on round together; they can break again the same way. Each time, its number is written in finer terms: 1/2 becomes 3/6, then 9/18. Its ring stays behind as a faint shadow round its pieces, and each later break leaves smaller rings inside it, so a family shows what it was; each generation of rings is a step further round the colour ring, amber, then pale, then blue. It pops only when the pieces would be too small to hold eight dots, or there would be too many bubbles at once.<br><i>Held parallel:</i> the same, but it pops instead of breaking.<br><i>Set ways:</i> a bubble is given a way round when it is dropped, from how the dots there were turning. Its inner part goes the other way, and the pieces of a shape are set going opposite ways to their neighbours, like gears. It pops when either part is going round more against its way than with it.</span><span class="v"></span></button></li>
     <li data-g="bubbles"><button type="button" class="row" data-k="Delete"><span class="k"><kbd>Delete</kbd></span><span class="d"><b>Pop all.</b> Pop every bubble at once. To pop just one, touch it while Bubbles is on. The Pop all button does the same.</span></button></li>
+    <li data-g="spells"><h3>Spells</h3><button type="button" class="row" data-k="k" data-s="spell" aria-pressed="false"><span class="k"><kbd>K</kbd></span><span class="d"><b>Spell.</b> With this on, a touch casts a spell where it lands. For a while every dot inside its circle has its character turned partway round the ring of colours, so it is drawn to other dots than before; a dot that leaves the circle has its own again, one that comes in is turned, and when the spell lifts every dot has its own again. A faint ring shows where it is and how long it has left. The Spell button does the same, and Press away, Draw in, Bubbles or Wave turns it off.</span></button></li>
+    <li data-g="spells" class="menus"><label>Size <select id="ssize" aria-label="Size: how wide the next spell is"><option value="0">small</option><option value="1" selected>middling</option><option value="2">large</option></select></label><label>Round the ring <select id="sturn" aria-label="Round the ring: how far the next spell turns each dot's character"><option value="0">a sixth</option><option value="1" selected>a third</option><option value="2">half</option></select></label><label>How long <select id="slast" aria-label="How long: how long the next spell lasts"><option value="0">5 s</option><option value="1" selected>15 s</option><option value="2">45 s</option></select></label></li>
+    <li data-g="waves"><h3>Waves</h3><button type="button" class="row" data-k=";" data-s="wave" aria-pressed="false"><span class="k"><kbd>;</kbd></span><span class="d"><b>Wave.</b> With this on, a touch sends out a wave: a ring of raised ground, like a ripple on a pond, that spreads from where it lands and sinks as it goes. The dots it reaches are pressed on ahead of it, then fall back behind it, and settle once it has passed. Hold and drag, and ripples go out one after another along the way; going faster than they spread, they overlap into a V trailing behind, like a boat’s wake. A faint ring shows each one. On a wider screen the bar has a Wave button that does the same, and Press away, Draw in, Bubbles or Spell turns it off.</span></button></li>
+    <li data-g="waves" class="menus"><label>Height <select id="wheight" aria-label="Height: how high the next wave is"><option value="0">low</option><option value="1" selected>middling</option><option value="2">high</option></select></label><label>How far <select id="wfar" aria-label="How far: how far the next wave spreads before it has sunk away"><option value="0">near</option><option value="1" selected>middling</option><option value="2">far</option></select></label></li>
     <li data-g="time"><h3>Time</h3><button type="button" class="row" data-k=" " data-s="paused" aria-pressed="false"><span class="k"><kbd>Space</kbd></span><span class="d"><b>Pause.</b> Stop everything, or start it again.</span></button></li>
     <li data-g="time"><button type="button" class="row" data-k="ArrowRight"><span class="k"><kbd>→</kbd></span><span class="d"><b>Step.</b> While paused, move it on by a moment.</span></button></li>
     <li data-g="time"><button type="button" class="row" data-k="s" data-s="slow" aria-pressed="false"><span class="k"><kbd>S</kbd></span><span class="d"><b>Slow.</b> A quarter of the speed, or back to full speed.</span></button></li>
@@ -197,7 +271,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     <li data-g="saving"><button type="button" class="row" data-k="r" data-s="rec" aria-pressed="false"><span class="k"><kbd>R</kbd></span><span class="d"><b>Clip.</b> Record a video clip, and press again to stop. It stops by itself after a minute and a half.</span></button></li>
     <li data-g="saving"><button type="button" class="row" data-k="i" data-s="marks" aria-pressed="false"><span class="k"><kbd>I</kbd></span><span class="d"><b>Status marks.</b> Show or hide the marks at the edges: the drift line along the top, the labels at the top right saying what is switched on, and the sound line along the bottom.</span></button></li>
     <li data-g="saving"><button type="button" class="row" data-k="f" data-s="full" aria-pressed="false"><span class="k"><kbd>F</kbd></span><span class="d"><b>Full screen.</b> Where the browser allows it.</span></button></li>
-    <li data-g="saving"><button type="button" class="row" data-k="h"><span class="k"><kbd>H</kbd></span><span class="d"><b>Hide the legend.</b></span></button></li>
+    <li data-g="saving"><button type="button" class="row" data-k="h"><span class="k"><kbd>H</kbd></span><span class="d"><b>Close.</b> More opens it again.</span></button></li>
   </ul>
 </div>
 <div id="sound" role="region" aria-label="Sound options" hidden>
@@ -209,20 +283,6 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   <div class="f"><label for="o-echo">Echo</label><input type="range" id="o-echo" min="0" max="100" step="1" value="50"><output id="o-echo-out" for="o-echo"></output></div>
   <div class="f"><label for="o-level">Loudness</label><input type="range" id="o-level" min="3" max="60" step="1" value="22"><output id="o-level-out" for="o-level"></output></div>
   <p>Each bubble sounds its share against a soft hum for the whole: 2/1 an octave above it, 3/2 a fifth, 1/2 an octave below. It is in tune while it holds its share, wavers as its dots stray, and plucks when it pops. Bloops, bells and plucked strings sound as a bubble goes round. Each clump sounds a note of its colour.</p>
-</div>
-<div id="bar">
-  <button type="button" id="keys" aria-expanded="false" aria-controls="legend">Show the legend</button>
-  <button type="button" id="drawb" aria-pressed="false">Draw in</button>
-  <button type="button" id="soundb" aria-pressed="false">Sound</button>
-  <button type="button" id="bubb" aria-pressed="false">Bubbles</button>
-  <select id="bshape" aria-label="The shape a touch lays down" hidden><option value="0" selected>round</option><option value="1">shaped</option><option value="2">stacked</option><option value="3">angled</option></select>
-  <select id="bangle" aria-label="The angle between an angled shape's two arms" hidden><option value="0">at 60°</option><option value="1" selected>at 90°</option><option value="2">at 120°</option><option value="3">at 150°</option></select>
-  <span id="bubkw" class="slide" hidden><label for="bubk">holding <b id="bubkv">1/3</b></label><input type="range" id="bubk" min="0" max="192" step="1" value="87" aria-label="How full a bubble tries to be, from 1/89 to 89/1, compared with how many dots the same space holds on average" aria-valuetext="1/3"></span>
-  <select id="bcirc" aria-label="How a bubble goes round, and how it ends" hidden><option value="2" selected>held, fracturing</option><option value="0">held parallel</option><option value="1">set ways</option></select>
-  <button type="button" id="popall" hidden>Pop all</button>
-  <button type="button" id="snd" aria-expanded="false" aria-controls="sound">Sound options</button>
-  <button type="button" id="still">Save a picture</button>
-  <button type="button" id="rec" aria-pressed="false">Record a clip</button>
 </div>
 <script src="../vendor/mp4-muxer.js"></script>
 <script>
@@ -269,6 +329,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     }
   }
   var FAMDRV = 2.4;      /* how hard a fractured family is driven round its middle in its way, as a single bubble's ring chases its tail: off the page, with no drive a family's parallel decayed and it broke again as soon as its grace was up */
+  var LEANK = 6;      /* how steep a bubble's ground is at its middle. Off the page, in a 3/3 bubble held parallel, 4 to 8 s after it dropped: at 2.2 the slope was lost in the dots' own pressing apart; at 6 a sinkhole held 65 to 68% of its dots in its inner half (flat, 38 to 47%) and a mountain 22 to 25%; at 12 the dots overshot the middle */
   var HELDK = 18;      /* how hard a held parallel pushes a member back, per unit of the field's time and of straying: off the page, at 4 shapes fell apart in a second and a half, at 30 a bubble at 2,848 positions never ended, at 18 round ones lasted 25 to 45 seconds and shapes 14 to 30 */
   function stepField(F, dt, ptr) {
     var n = F.n, w = F.w, h = F.h, gw = F.gw, gh = F.gh, fw = F.fw, fh = F.fh, g = gw * gh, gf = fw * fh, x = F.x, y = F.y;
@@ -361,6 +422,8 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
        A bubble may be laid out as a line, a square, a block, a stack or an angle of little ones: each piece is a bubble in its own right, and the pieces
        alternate their ways round from the middle one, like gears on a checkerboard, so where two meet their rings run the same way. */
     var bub = F.bub, nbub = bub ? bub.length : 0, bi, bb, bcnt, bv, bg, bk, bs, bvt, bvs, br2, bri2, bro2, btx, bty, bd, bcc, bvti, bvsi, brc, bj, bo, fm, fk, dgx, dgy, bl = null, BC, BA, BS, bcw, bch, bcix, bciy, bx0, bx1, by0, by1, bq;
+    var wav = F.wav, nwav = wav ? wav.length : 0, wv, wj, wd;      /* waves: each a ridge of raised ground going out in a ring from where it was sent, at its own pace, sinking as it goes */
+    for (wj = 0; wj < nwav; wj++) { wv = wav[wj]; wv.R = wv.v * (F.t - wv.t0); wv.f = wv.k * Math.max(0, 1 - (F.t - wv.t0) / wv.life); }
     if (nbub) {
       /* Where each bubble can reach. The field is cut into cells about a round bubble's width across, and each cell lists the bubbles whose
          reach, twice their width, touches it; each position then looks only at the bubbles listed for its cell. Every sum is taken in the
@@ -432,7 +495,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       bb.turn = bvs > 0 ? bvt / bvs : 0;
       if (!bb.held && !bb.hd) { bb.hd = bb.lead && bb.lead.hd ? bb.lead.hd * bb.par : bb.turn < 0 ? -1 : 1; }      /* its heading, from what was already turning there; a piece of a shape takes the middle piece's, or the opposite, alternating like gears */
       if (!bb.held) { bb.hold = bb.hold === undefined ? bb.turn * bb.hd : 0.95 * bb.hold + 0.05 * bb.turn * bb.hd; }   /* how far each heading holds, eased over about a third of a second */
-      bb.cc = bcc; bb.wantIn = bb.want / 2; bb.mi = (bcc - bb.wantIn) / bb.wantIn;      /* the inner half holds half the share */
+      bb.cc = bcc; bb.wantIn = bb.lean === 1 ? 0.75 * bb.want : bb.lean === 2 ? 0.25 * bb.want : bb.want / 2;      /* its fullness slopes with its ground: a sinkhole keeps three quarters of its share in its inner half, a mountain a quarter */ bb.mi = (bcc - bb.wantIn) / bb.wantIn;      /* the inner half holds half the share */
       bb.turnIn = bvsi > 0 ? bvti / bvsi : 0;
       if (!bb.held) { bb.holdIn = bb.holdIn === undefined ? -bb.turnIn * bb.hd : 0.95 * bb.holdIn - 0.05 * bb.turnIn * bb.hd; }   /* the inner half's heading is the outer's reflected */
       for (bk = 0, bq = 0; bk < 16; bk++) { bq += bb.qn[bk]; } bb.om = bq ? bvt / bq / (1.21 * bb.r) : 0;      /* how fast the outer ring is going round, in radians a unit of the field's time (its middle radius is 1.21 of the width); only drawn */
@@ -476,6 +539,14 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
         rr = Math.sqrt(dx * dx + dy * dy);
         if (rr < 0.35 && rr > 1e-5) { f = ptr.sign * 2.2 * (1 - rr / 0.35); fx += f * dx / rr; fy += f * dy / rr; }
       }
+      for (wj = 0; wj < nwav; wj++) {      /* a wave's ridge: a dot just ahead of its crest is pressed on outward, one just behind it back in, most halfway down each side and not at all on the crest or at its foot */
+        wv = wav[wj]; if (wv.f <= 0) { continue; }
+        dx = x[i] - wv.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
+        if (dx > wv.R + wv.wd || dx < -wv.R - wv.wd) { continue; }
+        dy = y[i] - wv.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        rr = Math.sqrt(dx * dx + dy * dy); wd = rr - wv.R;
+        if (wd > -wv.wd && wd < wv.wd && rr > 1e-5) { f = wv.f * Math.sin(3.141592654 * wd / wv.wd); fx += f * dx / rr; fy += f * dy / rr; }
+      }
       bl = nbub ? BC[BA[i]] : null;      /* only the bubbles that can reach this one */
       for (bj = 0; bl && bj < bl.length; bj++) {
         bb = bub[bl[bj]];
@@ -484,6 +555,9 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
         rr = Math.sqrt(dx * dx + dy * dy);
         if (rr < 1e-5 || rr > 2 * bb.r) { continue; }
         brc = 0.7071 * bb.r;
+        if (bb.lean && rr < bb.r) {      /* its ground: steepest at the middle, flat at the rim; a sinkhole draws toward the middle, a mountain presses away, and a sinkhole in a mountain does the first in the inner half and the second in the outer */
+          f = LEANK * (1 - rr / bb.r); if (bb.lean === 2 || (bb.lean === 3 && rr > brc)) { f = -f; } fx -= f * dx / rr; fy -= f * dy / rr;
+        }
         if (bb.m > 0) { if (rr < bb.r && rr > brc) { f = 2.2 * Math.min(1, bb.m) * (0.3 + 0.7 * rr / bb.r); fx += f * dx / rr; fy += f * dy / rr; } }   /* fuller than its share: the outer half presses out */
         else if (rr > bb.r) { f = 2.2 * Math.min(1, -bb.m) * (2 - rr / bb.r); fx -= f * dx / rr; fy -= f * dy / rr; }                     /* emptier: it draws in from round about */
         if (rr < brc) {
@@ -581,14 +655,17 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   S.seed = 20261003 + Math.floor(Math.random() * 1000000);   /* each visit starts from its own scatter */
   /* Bubbles: what each holds, as a share of the whole's average crowding, how wide it is, and how long it lasts (twelve seconds at the usual pace) */
   var BUBK = [1 / 89, 1 / 88, 1 / 87, 1 / 86, 1 / 85, 1 / 84, 1 / 83, 1 / 82, 1 / 81, 1 / 80, 1 / 79, 1 / 78, 1 / 77, 1 / 76, 1 / 75, 1 / 74, 1 / 73, 1 / 72, 1 / 71, 1 / 70, 1 / 69, 1 / 68, 1 / 67, 1 / 66, 1 / 65, 1 / 64, 1 / 63, 1 / 62, 1 / 61, 1 / 60, 1 / 59, 1 / 58, 1 / 57, 1 / 56, 1 / 55, 1 / 54, 1 / 53, 1 / 52, 1 / 51, 1 / 50, 1 / 49, 1 / 48, 1 / 47, 1 / 46, 1 / 45, 1 / 44, 1 / 43, 1 / 42, 1 / 41, 1 / 40, 1 / 39, 1 / 38, 1 / 37, 1 / 36, 1 / 35, 1 / 34, 1 / 33, 1 / 32, 1 / 31, 1 / 30, 1 / 29, 1 / 28, 1 / 27, 1 / 26, 1 / 25, 1 / 24, 1 / 23, 1 / 22, 1 / 21, 1 / 20, 1 / 19, 1 / 18, 1 / 17, 1 / 16, 1 / 15, 1 / 14, 1 / 13, 1 / 12, 1 / 11, 1 / 10, 1 / 9, 9 / 81, 1 / 8, 1 / 7, 1 / 6, 1 / 5, 1 / 4, 1 / 3, 1 / 2, 2 / 3, 3 / 4, 4 / 5, 5 / 6, 6 / 7, 7 / 8, 8 / 9, 1, 9 / 8, 8 / 7, 7 / 6, 6 / 5, 5 / 4, 4 / 3, 3 / 2, 2, 3, 4, 5, 6, 7, 8, 9, 81 / 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89], BUBN = ['1/89', '1/88', '1/87', '1/86', '1/85', '1/84', '1/83', '1/82', '1/81', '1/80', '1/79', '1/78', '1/77', '1/76', '1/75', '1/74', '1/73', '1/72', '1/71', '1/70', '1/69', '1/68', '1/67', '1/66', '1/65', '1/64', '1/63', '1/62', '1/61', '1/60', '1/59', '1/58', '1/57', '1/56', '1/55', '1/54', '1/53', '1/52', '1/51', '1/50', '1/49', '1/48', '1/47', '1/46', '1/45', '1/44', '1/43', '1/42', '1/41', '1/40', '1/39', '1/38', '1/37', '1/36', '1/35', '1/34', '1/33', '1/32', '1/31', '1/30', '1/29', '1/28', '1/27', '1/26', '1/25', '1/24', '1/23', '1/22', '1/21', '1/20', '1/19', '1/18', '1/17', '1/16', '1/15', '1/14', '1/13', '1/12', '1/11', '1/10', '1/9', '9/81', '1/8', '1/7', '1/6', '1/5', '1/4', '1/3', '1/2', '2/3', '3/4', '4/5', '5/6', '6/7', '7/8', '8/9', '3/3', '9/8', '8/7', '7/6', '6/5', '5/4', '4/3', '3/2', '2/1', '3/1', '4/1', '5/1', '6/1', '7/1', '8/1', '9/1', '81/9', '10/1', '11/1', '12/1', '13/1', '14/1', '15/1', '16/1', '17/1', '18/1', '19/1', '20/1', '21/1', '22/1', '23/1', '24/1', '25/1', '26/1', '27/1', '28/1', '29/1', '30/1', '31/1', '32/1', '33/1', '34/1', '35/1', '36/1', '37/1', '38/1', '39/1', '40/1', '41/1', '42/1', '43/1', '44/1', '45/1', '46/1', '47/1', '48/1', '49/1', '50/1', '51/1', '52/1', '53/1', '54/1', '55/1', '56/1', '57/1', '58/1', '59/1', '60/1', '61/1', '62/1', '63/1', '64/1', '65/1', '66/1', '67/1', '68/1', '69/1', '70/1', '71/1', '72/1', '73/1', '74/1', '75/1', '76/1', '77/1', '78/1', '79/1', '80/1', '81/1', '82/1', '83/1', '84/1', '85/1', '86/1', '87/1', '88/1', '89/1'], BUBR = 0.06, BUBGRACE = 1.2, BUBMAX = 8, BUBPIECES = 150;
-  S.bubbles = false; S.bubk = 87; S.light = 2; S.pops = []; S.prior = {}; S.shape = 0; S.bubg = 0; S.angle = 1; S.circ = 2; S.famid = 0;      /* circ: 2 held and fracturing, 0 a held parallel, 1 set ways; shape: 0 round, 1 shaped by the share, 2 stacked, 3 angled; angle: an index into BANG */
+  S.bubbles = false; S.drawIn = false; S.bubk = 87; S.light = 2; S.pops = []; S.prior = {}; S.shape = 0; S.bubg = 0; S.angle = 1; S.circ = 2; S.lean = 0; S.famid = 0; S.spell = false; S.wave = false; S.wheight = 1; S.wfar = 1; S.wake = null; S.spells = []; S.ssize = 1; S.sturn = 1; S.slast = 1;      /* circ: 2 held and fracturing, 0 a held parallel, 1 set ways; shape: 0 round, 1 shaped by the share, 2 stacked, 3 angled; angle: an index into BANG */
   var ROOMS = [0.25, 0.5, 1, 2, 4], ROOMN = ['A quarter', 'Half', 'As it began', 'Twice', 'Four times'];      /* room in five steps; it begins at the middle one */
   S.roomi = 2;
   var FAVI = [8, 80, 81, 83, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 103, 104, 105, 106, 108, 109, 110, 111, 112, 184];      /* the shares the menu had, which the 7 key jumps between */
+  var LEANW = ['flat', 'a sinkhole', 'a mountain', 'a sinkhole in a mountain'];      /* the ground inside the bubbles dropped next */
+  var WAVEK = [3, 6, 12], WAVEHW = ['low', 'middling', 'high'], WAVEF = [0.12, 0.22, 0.36], WAVEGO = ['a little way', 'a middling way', 'far'], WAVEV = 0.1, WAVEWD = 0.03, WAVEMAX = 32, WAKESTEP = 0.04;      /* a wave: how steep its ridge (the pointer presses at 2.2, a bubble's ground at 6), how far it goes before it has sunk away, how fast it spreads, half its ridge's width; 32 at once; on a drag, a ripple every 0.04 */
+  var SPELLR = [0.06, 0.12, 0.24], SPELLT = [1 / 6, 1 / 3, 1 / 2], SPELLW = ['a sixth', 'a third', 'half'], SPELLS = [5, 15, 45], SPELLMAX = 8;      /* a spell's width (a round bubble's, twice, four times), how far round the ring, how many seconds */
   var BANG = [60, 90, 120, 150];      /* 1/3 is the first choice, as before */
   var SHAREW = { '1/81': 'an eighty-first as many', '1/9': 'a ninth as many', '9/81': 'a ninth as many', '1/7': 'a seventh as many', '1/3': 'a third as many', '1/2': 'half as many', '2/3': 'two thirds as many', '3/4': 'three quarters as many', '4/5': 'four fifths as many', '5/6': 'five sixths as many', '6/7': 'six sevenths as many', '7/8': 'seven eighths as many', '8/9': 'eight ninths as many', '3/3': 'just as many', '3/2': 'one and a half times as many', '2/1': 'twice as many', '3/1': 'three times as many', '4/1': 'four times as many', '6/1': 'six times as many', '7/1': 'seven times as many', '8/1': 'eight times as many', '9/1': 'nine times as many', '81/9': 'nine times as many', '81/1': '81 times as many', '1/4': 'a quarter as many', '1/5': 'a fifth as many', '1/6': 'a sixth as many', '1/8': 'an eighth as many', '4/3': 'four thirds as many', '5/1': 'five times as many' };
   function shareSay() { var s = BUBN[S.bubk], pq = s.split('/'), p = +pq[0], q = +pq[1];
-    return s + ': ' + (SHAREW[s] ? SHAREW[s] + ' dots as the same space holds on average' : q === 1 ? p + ' times as many dots as the same space holds on average' : p === 1 ? 'one dot for every ' + q + ' the same space holds on average' : p + ' dots for every ' + q + ' the same space holds on average'); }      /* the share in words, for the messages */
+    return s + ': ' + (SHAREW[s] ? SHAREW[s] + ' as on average' : q === 1 ? p + ' times as many as on average' : p === 1 ? 'one dot for every ' + q + ' on average' : p + ' dots for every ' + q + ' on average'); }      /* the share in words, for the messages */
   function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }      /* 16000 as 16,000 */
   var OPEN = 56;   /* where in the drift's cycle a visit opens: just before like begins drawing like, so the first gatherings form within the first half minute */
 
@@ -600,17 +677,18 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   function say(text, ms) {
     hint.textContent = text; hint.className = '';
     clearTimeout(S.hintT); clearTimeout(S.hintT2);
+    if (ms) { ms = Math.max(ms, 2500, 400 * text.split(/\s+/).length); }      /* long enough to read: at least 2.5 s, and 0.4 s a word */
     if (ms) { S.hintT = setTimeout(function () { hint.className = 'gone'; S.hintT2 = setTimeout(function () { hint.className = 'gone done'; clearMarks(); }, 1300); }, ms); }
     clearMarks();
   }
   /* The legend and the sound options sit above the bar, however many lines the bar takes, and below the message line. */
   var barEl = document.getElementById('bar'), fitLast = '';
   function fitPanels() {
-    var r = barEl.getBoundingClientRect(), H = window.innerHeight, low = Math.round(hint.getBoundingClientRect().top), top = low + (window.innerWidth <= 640 ? 84 : 38), b, mh, sh, i, p = [legend, panel], key, sheet = window.innerWidth <= 640 || H <= 500;      /* the message line's room is counted from where it sits, below a notch */
+    var r = barEl.getBoundingClientRect(), H = window.innerHeight, low = Math.round(hint.getBoundingClientRect().top), rm = Math.round(3 * (parseFloat(getComputedStyle(hint).lineHeight) || 23) + 0.9 * (parseFloat(getComputedStyle(hint).fontSize) || 16)), top = low + rm, b, mh, sh, i, p = [legend, panel], key, sheet = window.innerWidth <= 640 || H <= 500;      /* the message line's room, three lines of its plate, is counted from where it sits, below a notch */
     if (sheet && H > 500) { top = Math.max(top, Math.round(0.34 * H)); }      /* on a phone held upright the sheet leaves the upper third of the picture in view */
     if (!r.height) { return; }
     b = Math.max(64, Math.round(H - r.top + 10)); mh = Math.max(0, Math.min(140, H - b), H - b - top);      /* at least 140 tall, rising over the message line, but not above the top of the screen (unless the bar leaves less room than the panel's own edges) */
-    sh = Math.max(0, Math.min(140, H - b), H - b - low - 84); key = b + '|' + mh + '|' + (sheet ? sh : '') + '|' + (panel ? 1 : 0);      /* the sound options' own height on a sheet, counted in what is looked at for a change */
+    sh = Math.max(0, Math.min(140, H - b), H - b - low - Math.max(84, rm)); key = b + '|' + mh + '|' + (sheet ? sh : '') + '|' + (panel ? 1 : 0);      /* the sound options' own height on a sheet, counted in what is looked at for a change */
     if (key === fitLast) { return; }
     fitLast = key; legend.classList.toggle('short', sheet && mh < 120);
     for (i = 0; i < p.length; i++) { if (p[i]) { p[i].style.bottom = b + 'px'; p[i].style.maxHeight = (p[i] === legend || !sheet ? mh : sh) + 'px'; } }      /* the sound options keep their own height */
@@ -620,8 +698,9 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     if (!open && !legend.hidden) { S.legTop = legend.scrollTop; }
     legend.hidden = !open;
     keysBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    keysBtn.textContent = open ? 'Hide the legend' : 'Show the legend'; fitPanels();      /* placed once the button's new words have set the bar's height */
-    if (open) { legend.scrollTop = S.legTop || 0; if (clash()) { S.legBack = false; setPanel(false); } } else { S.legBack = false; }
+    fitPanels();
+    S.legBack = false;      /* a legend opened, or closed, is no longer stepped aside */
+    if (open) { legend.scrollTop = S.legTop || 0; if (clash()) { var kb = kbIn(panel); setPanel(false); if (kb) { kbBack(); } } }
     clearMarks();
   }
   /* Where the legend and the sound options would lie one over the other, they take turns. */
@@ -633,15 +712,14 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   }
   /* The status marks stand clear of the message line, and give way to the legend or the sound options where those would lie over them. */
   function clearMarks() {
-    var t, h, rg, i, p, ps, hide = false;
+    var t, h, i, p, ps, hide = false;
     if (!tagsEl) { return; }
     tagsEl.style.top = ''; tagsEl.style.visibility = '';
     if (!tagsEl.firstChild) { return; }
     t = tagsEl.getBoundingClientRect(); h = hint.getBoundingClientRect();
-    if (h.right > t.left) {                                  /* a narrow screen, where the message line can run under the marks */
+    p = getComputedStyle(hint); if (Math.min(h.left + parseFloat(p.maxWidth), window.innerWidth - parseFloat(p.right)) > t.left) {      /* a narrow screen, where the message line can run under the marks */
       if (!legend.hidden) { hide = true; }                   /* the open legend shows every setting in its rows */
       else if (hint.textContent && hint.className.indexOf('done') < 0) {
-        rg = document.createRange(); rg.selectNodeContents(hint); h = rg.getBoundingClientRect();
         if (h.width && h.right > t.left - 8 && t.top < h.bottom + 6) { tagsEl.style.top = Math.round(h.bottom + 6) + 'px'; t = tagsEl.getBoundingClientRect(); }
       }
     }
@@ -802,7 +880,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   function mixc(a, b, t) { var p = rgbOf(a), q = rgbOf(b); return 'rgb(' + Math.round(q[0] + (p[0] - q[0]) * t) + ',' + Math.round(q[1] + (p[1] - q[1]) * t) + ',' + Math.round(q[2] + (p[2] - q[2]) * t) + ')'; }
   function bubbles() {
     var F = S.F, B = F.bub || [], kz = S.u * S.ps * S.zoom, wp = F.w * kz, hp = F.h * kz, i, j, b, X, Y, R, a, k, ox, oy, X1, Y1, now = performance.now(), live = [], seen = {}, top = {}, fams = {}, fid, rec, q, al, dtb, co, ci, fo = S.follow, ovx = 0, ovy = 0, cg = !!vx.createConicGradient;
-    if (!B.length && !S.pops.length && !Object.keys(S.prior).length) { return; }
+    if (!B.length && !S.pops.length && !Object.keys(S.prior).length && !S.spells.length && !(F.wav && F.wav.length)) { return; }
     centre();
     if (fo >= 0 && fo < F.n) { ovx = F.vx[fo]; ovy = F.vy[fo]; }      /* riding along, colours are read as that dot sees them */
     if (B.length) { holds(B); }
@@ -884,8 +962,20 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       b.ang += (b.om || 0) * dtb; b.angi += (b.omi || 0) * dtb; b.tp = F.t;
       co = tint(b, 0); ci = tint(b, 1);
       if (b.line) { ring(X, Y, R, 0.25 + 0.6 * Math.sqrt(a), top[b.g] === i ? b.label + (b.word === 'frac' ? '' : b.word === 'angle' ? ', angled ' + b.deg + '\u00b0' : ' in a ' + (b.word || 'line')) : null, -b.ang * R, co); }      /* a shape is labelled once, over its highest piece */
-      else { ring(X, Y, R, 0.25 + 0.6 * Math.sqrt(a), b.label + (b.held ? (b.hd > 0 ? ' \u21bb' : b.hd < 0 ? ' \u21ba' : '') : b.hd > 0 ? ' \u21bb\u21ba' : b.hd < 0 ? ' \u21ba\u21bb' : ''), -b.ang * R, co); }
+      else { ring(X, Y, R, 0.25 + 0.6 * Math.sqrt(a), b.label + (b.lean ? ', ' + LEANW[b.lean].replace(/^a /, '') : '') + (b.held ? (b.hd > 0 ? ' \u21bb' : b.hd < 0 ? ' \u21ba' : '') : b.hd > 0 ? ' \u21bb\u21ba' : b.hd < 0 ? ' \u21ba\u21bb' : ''), -b.ang * R, co); }
       ring(X, Y, R * 0.7071, 0.15 + 0.35 * Math.sqrt(a), null, -b.angi * R * 0.7071, ci);      /* the line between the halves, its dashes going round with the inner half */
+    }
+    for (i = 0; i < S.spells.length; i++) {      /* a spell: a faint ring where it is, and an arc over it for the time it has left */
+      b = S.spells[i]; k = Math.max(0, Math.min(1, 1 - (F.t - b.t0) / b.dur));
+      X = S.cw / 2 + wrapd(b.x - S.cx, F.w) * kz; Y = S.ch / 2 + wrapd(b.y - S.cy, F.h) * kz; R = b.r * kz;
+      ring(X, Y, R, 0.3, Math.ceil(k * b.secs) + ' s', undefined, S.ink);
+      vx.globalAlpha = 0.75; vx.strokeStyle = S.ink; vx.lineWidth = Math.max(2, 2.6 * S.ps); vx.beginPath(); vx.arc(X, Y, R + 5 * S.ps, -1.5708, -1.5708 + 6.2832 * k); vx.stroke();
+    }
+    for (i = 0; F.wav && i < F.wav.length; i++) {      /* a wave: a faint ring along its crest, fading as it sinks */
+      b = F.wav[i]; k = Math.max(0, 1 - (F.t - b.t0) / b.life); R = b.v * (F.t - b.t0) * kz;
+      if (k <= 0 || R < 1) { continue; }
+      X = S.cw / 2 + wrapd(b.x - S.cx, F.w) * kz; Y = S.ch / 2 + wrapd(b.y - S.cy, F.h) * kz;
+      ring(X, Y, R, 0.4 * k * (b.k / 6 > 1 ? 1 : 0.5 + 0.5 * b.k / 6), null, undefined, S.ink);
     }
     for (j = 0; j < S.pops.length; j++) {
       b = S.pops[j]; k = (now - b.t0) / 650;
@@ -933,7 +1023,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     for (i = 0; i < fam.length; i++) {
       p = fam[i]; popBubble(p, 1);
       for (j = 0; j < 3; j++) {
-        nb = { x: p.x + 2 * p.r / 3 * Math.cos(a0 + j * 2.0944), y: p.y + 2 * p.r / 3 * Math.sin(a0 + j * 2.0944), r: rf, k: p.k, label: lab, born: F.t, c: 0, want: 0, m: 0, hd: p.hd, g: id, fam: id, held: 1, frac: 1, line: 3 * fam.length, word: 'frac' };
+        nb = { x: p.x + 2 * p.r / 3 * Math.cos(a0 + j * 2.0944), y: p.y + 2 * p.r / 3 * Math.sin(a0 + j * 2.0944), r: rf, k: p.k, label: lab, born: F.t, c: 0, want: 0, m: 0, hd: p.hd, lean: p.lean, g: id, fam: id, held: 1, frac: 1, line: 3 * fam.length, word: 'frac' };
         nb.x -= Math.floor(nb.x / F.w) * F.w; nb.y -= Math.floor(nb.y / F.h) * F.h;
         B.push(nb);
       }
@@ -947,17 +1037,58 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     if (S.shape === 1 && Math.max(p, q) > 9) { return { p: 1, q: 1, n: 1, word: '', round: 1 }; }      /* 81 pieces in a row would be longer than the field is tall: it drops round */
     return S.shape === 1 ? { p: p, q: q, n: p * q, word: p === 1 || q === 1 ? 'line' : p === q ? 'square' : 'block' } : { p: 1, q: 1, n: 1, word: '' };
   }
+  /* The messages name the choice in a line; the legend's Circuits and Shape rows keep the whole of it. */
   function sayCirc() {
-    say(S.circ === 1 ? 'Set ways: a bubble is given a way round when it is dropped, from how the dots there were turning. Its inner part goes the other way, and the pieces of a shape are set going opposite ways to their neighbours, like gears. It pops when either part is going round more against its way than with it. This is for the bubbles you drop next.'
-      : S.circ === 0 ? 'Held parallel: a bubble has no way round of its own. It goes the way its dots are going round together, the parallel they hold between them, and any dot that strays is nudged back. It pops when their straying outweighs what they share. This is for the bubbles you drop next.'
-      : 'Held, fracturing: a bubble goes the way its dots are going round together, and any dot that strays is nudged back. When their straying outweighs what they share, it breaks into three smaller bubbles that keep its share and go round together, its number written in finer terms (1/2 becomes 3/6). Its ring stays behind as a faint coloured shadow, and each later break leaves smaller rings inside it. It pops only when the pieces would be too small to hold eight dots. This is for the bubbles you drop next.', 8000);
+    say(S.circ === 1 ? 'Set ways: each bubble is given a way round as it drops.'
+      : S.circ === 0 ? 'Held parallel: like fracturing, but a bubble pops instead of breaking.'
+      : 'Held, fracturing: a bubble breaks into three when its dots stray more than they share.', 3000);
   }
   function sayShape() {
-    var g = S.circ !== 1 ? ' Each finds its own way round.' : S.shape === 3 ? ' Along each arm they are set going round opposite ways, like gears.' : S.shape === 2 ? ' Along each row they are set going round opposite ways, like gears.' : ' Neighbours are set going round opposite ways, like gears.';
-    say(S.shape === 3 ? 'Angled: a touch lays a corner with two arms of four little bubbles, opening at ' + BANG[S.angle] + '\u00b0 (0 changes the angle). Each holds the share on its own.' + g
-      : S.shape === 2 ? 'Stacked: a touch lays rows of 4, 3 and 2 little bubbles, standing on the bottom row. Each holds the share on its own.' + g
-      : S.shape === 1 ? 'Shaped by the share: a touch lays little bubbles by the share\u2019s two numbers, the first along the way the dots are moving and the second across, so 9/1 is a line of nine and 3/3 a square. A share with a number over 9 drops one round bubble. Each holds the share on its own.' + g
-      : 'Round: one bubble at a touch.', S.shape ? 6000 : 1800);
+    say(S.shape === 3 ? 'Angled: a touch lays a corner of little bubbles, opening at ' + BANG[S.angle] + '\u00b0.'
+      : S.shape === 2 ? 'Stacked: a touch lays rows of 4, 3 and 2 little bubbles.'
+      : S.shape === 1 ? (shapeOf().round ? 'Shaped: a share with a number over 9 drops one round bubble.' : 'Shaped: a touch lays little bubbles set out by the share\u2019s two numbers.')
+      : 'Round: one bubble at a touch.', S.shape ? 3000 : 1800);
+  }
+  /* A spell: where a touch casts it, every dot inside its circle has its character turned partway round the ring for a while. It is done here,
+     outside the rule: before each step the turned dots' characters are written in, and a dot outside every spell has its own written back,
+     exactly as the field made it. With no spell cast, nothing here touches the field. */
+  function castAt(wx, wy) {
+    var F = S.F;
+    if (S.spells.length >= SPELLMAX) { S.spells.shift(); }      /* eight at once: the next lifts the oldest */
+    S.spells.push({ x: wx, y: wy, r: SPELLR[S.ssize], turn: SPELLT[S.sturn], t0: F.t, dur: 0.8 * SPELLS[S.slast], secs: SPELLS[S.slast] });
+    say('A spell: the dots here turn ' + SPELLW[S.sturn] + ' of the way round, for ' + SPELLS[S.slast] + ' s.', 3000); status();
+  }
+  function applySpells() {
+    var F = S.F, sp = S.spells, n = sp.length ? F.n : F.cap, i, j, s, dx, dy, tn, th, own, on, changed = false;
+    if (!sp.length && !S.spelled) { return; }
+    if (S.ownF !== F) { S.own = F.ch.slice(0); S.ownF = F; S.turned = new Float32Array(F.cap); }      /* each dot's own character, as the field made it */
+    own = S.own; on = S.turned;
+    for (i = 0; i < n; i++) {
+      tn = 0;
+      for (j = sp.length - 1; j >= 0; j--) { s = sp[j]; dx = wrapd(F.x[i] - s.x, F.w); dy = wrapd(F.y[i] - s.y, F.h); if (dx * dx + dy * dy < s.r * s.r) { tn = s.turn; break; } }      /* the latest spell over it */
+      if (tn !== on[i]) {
+        on[i] = tn; F.ch[i] = tn ? (own[i] + tn) % 1 : own[i]; th = 6.283185307 * F.ch[i];
+        F.c1[i] = Math.cos(th); F.s1[i] = Math.sin(th); F.c2[i] = Math.cos(2 * th); F.s2[i] = Math.sin(2 * th); F.c3[i] = Math.cos(3 * th); F.s3[i] = Math.sin(3 * th); changed = true;
+      }
+    }
+    S.spelled = sp.length > 0;
+    if (changed) { crowd(F.n); }      /* the colours are drawn by character */
+  }
+  /* A wave: a touch sends out a ring of raised ground. It is in the rule as an added block, which with no wave out adds nothing. */
+  function waveAt(wx, wy, quiet) {
+    var F = S.F, W = F.wav || (F.wav = []);
+    if (W.length >= WAVEMAX) { W.shift(); }      /* the next sinks the oldest */
+    W.push({ x: wx, y: wy, t0: F.t, v: WAVEV, wd: WAVEWD, k: WAVEK[S.wheight], life: WAVEF[S.wfar] / WAVEV });
+    if (!quiet) { say('A wave: it spreads from here and sinks as it goes. Drag, and ripples follow along the way.', 3000); }
+  }
+  function ageWaves() {
+    var F = S.F, W = F.wav, i;
+    for (i = W ? W.length - 1 : -1; i >= 0; i--) { if (F.t - W[i].t0 >= W[i].life) { W.splice(i, 1); } }
+  }
+  function ageSpells() {
+    var F = S.F, i, gone = false;
+    for (i = S.spells.length - 1; i >= 0; i--) { if (F.t - S.spells[i].t0 >= S.spells[i].dur) { S.spells.splice(i, 1); gone = true; } }
+    if (gone) { applySpells(); status(); }      /* lifted: every dot it held has its own again at once */
   }
   function bubbleAt(wx, wy) {         /* a touch on a bubble pops it; anywhere else drops a new one, or a shape of them */
     var F = S.F, B = F.bub || (F.bub = []), i, b, dx, dy, gs = [], sh = shapeOf(), rp, mx = 0, my = 0, ang, ca, sa, ia, ib, a0, b0, al, ac, px, py, lead = null, nb, cells, n0, tol = 22 / (S.u * S.zoom), hit = null, hd = 1e9, dd;
@@ -969,14 +1100,14 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     for (i = 0; i < B.length; i++) { if (gs.indexOf(B[i].g) < 0) { gs.push(B[i].g); } }
     if (gs.length >= BUBMAX) { for (i = B.length - 1; i >= 0; i--) { if (B[i].g === gs[0]) { popBubble(B[i]); } } }      /* eight at once, a line counting as one: the oldest goes */
     S.bubg += 1; n0 = B.length;
-    if (sh.n < 2) { B.push({ x: wx, y: wy, r: BUBR, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, g: S.bubg }); }
+    if (sh.n < 2) { B.push({ x: wx, y: wy, r: BUBR, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, lean: S.lean, g: S.bubg }); }
     else if (sh.word === 'angle') {        /* an angle: a corner with an arm of four along the top of the screen and an arm of four going down the side at the chosen angle from it, each a fifth of a round bubble's room */
       rp = BUBR / Math.sqrt(5); ang = sh.deg * Math.PI / 180; ca = Math.cos(ang); sa = Math.sin(ang);
       al = wx - 20 * rp * (1 + ca) / 9; ac = wy - 20 * rp * sa / 9;      /* the corner, set so the nine sit round the touch; the field's y runs down the screen */
       cells = [[0, 0, 0]]; for (ia = 1; ia <= 4; ia++) { cells.push([ia, 0, ia]); cells.push([ia * ca, ia * sa, ia]); }
       for (i = 0; i < cells.length; i++) {
         px = al + 2 * rp * cells[i][0]; py = ac + 2 * rp * cells[i][1]; px -= Math.floor(px / F.w) * F.w; py -= Math.floor(py / F.h) * F.h;
-        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, g: S.bubg, line: sh.n, word: sh.word, deg: sh.deg };
+        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, lean: S.lean, g: S.bubg, line: sh.n, word: sh.word, deg: sh.deg };
         if (lead) { nb.lead = lead; nb.par = cells[i][2] % 2 ? -1 : 1; } else { lead = nb; }      /* the corner first; opposite ways along each arm from it, like gears */
         B.push(nb);
       }
@@ -990,7 +1121,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
         ia = cells[i][0]; ib = cells[i][1];
         px = wx + (ib - (sh.rows[ia] - 1) / 2) * 2 * rp; py = wy + ((sh.rows.length - 1) / 2 - ia) * Math.sqrt(3) * rp;      /* the field's y runs down the screen, so the base is lowest */
         px -= Math.floor(px / F.w) * F.w; py -= Math.floor(py / F.h) * F.h;
-        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, g: S.bubg, line: sh.n, word: sh.word };
+        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, lean: S.lean, g: S.bubg, line: sh.n, word: sh.word };
         if (lead) { nb.lead = lead; nb.par = (ib % 2) === (b0 % 2) ? 1 : -1; } else { lead = nb; }      /* opposite ways along each row, like gears; above, each agrees with one of the two below */
         B.push(nb);
       }
@@ -1004,7 +1135,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       for (i = 0; i < cells.length; i++) {
         ia = cells[i][0]; ib = cells[i][1]; al = (ia - (sh.p - 1) / 2) * 2 * rp; ac = (ib - (sh.q - 1) / 2) * 2 * rp;
         px = wx + al * ca - ac * sa; py = wy + al * sa + ac * ca; px -= Math.floor(px / F.w) * F.w; py -= Math.floor(py / F.h) * F.h;
-        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, g: S.bubg, line: sh.n, word: sh.word };
+        nb = { x: px, y: py, r: rp, k: BUBK[S.bubk], label: BUBN[S.bubk], born: F.t, c: 0, want: 0, m: 0, hd: 0, lean: S.lean, g: S.bubg, line: sh.n, word: sh.word };
         if (lead) { nb.lead = lead; nb.par = (Math.abs(ia - a0) + Math.abs(ib - b0)) % 2 ? -1 : 1; } else { lead = nb; }      /* the middle one first: the others alternate from it, like gears on a checkerboard */
         B.push(nb);
       }
@@ -1409,8 +1540,8 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
      Each fails in some browsers, so if one gives nothing the next press of R tries the other, and every failure says why. */
   var CLIP = null;
   function why(e) { return e ? (e.name || 'error') + (e.message ? ': ' + String(e.message).slice(0, 90) : '') : 'unknown'; }
-  function otherWay() { SAVE.mode = SAVE.mode === 'frames' ? 'recorder' : 'frames'; return ' Press R to try another way of recording.'; }
-  function recUi(on) { recBtn.textContent = on ? 'Stop recording' : 'Record a clip'; recBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); status(); }
+  function otherWay() { SAVE.mode = SAVE.mode === 'frames' ? 'recorder' : 'frames'; return ' Press ' + keyName('R', 'Clip') + ' to try another way of recording.'; }
+  function recUi(on) { var kb = document.activeElement === recBtn && !pressedOn(recBtn); recBtn.textContent = on ? 'Stop recording' : 'Record a clip'; recBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); recBtn.hidden = !on; status(); if (kb && !on) { pressBtn.focus(); } }
   function clipSize() {                          /* even sides, and no larger than 1920 by 1080: some encoders refuse anything else */
     var w = V.width, h = V.height, k = Math.min(1, 1920 / w, 1080 / h);
     return [Math.max(2, Math.floor(w * k / 2) * 2), Math.max(2, Math.floor(h * k / 2) * 2)];
@@ -1467,7 +1598,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
         } catch (e) { fail('the encoder could not be set up (' + why(e) + ')'); return; }
         c.t0 = performance.now(); CLIP = c; SAVE.t0 = Date.now();
         SAVE.timer = setTimeout(function () { endClip(false); }, 90000);
-        say('Recording' + (c.sound ? ' with sound' : A.on ? ' without sound' : '') + '. Press ' + keyName('R again', 'Stop recording') + ' to stop. It stops by itself after a minute and a half.', 4000); recUi(true);
+        say('Recording' + (c.sound ? ' with sound' : A.on ? ' without sound' : '') + '. It stops by itself after a minute and a half.', 4000); recUi(true);
       });
     });
   }
@@ -1565,7 +1696,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     rec.onerror = function (ev) { SAVE.err = 'the recorder reported ' + ((ev && ev.error && (ev.error.name || ev.error.message)) || 'an error'); finish(); };
     SAVE.timer = setTimeout(stopRec, 90000);
     SAVE.watch = setTimeout(function () { if (SAVE.rec && !SAVE.chunks.length) { SAVE.err = 'no data came in the first three seconds'; finish(); } }, 3200);
-    say('Recording' + (withSound ? ' with sound' : A.on ? ' without sound' : '') + '. Press ' + keyName('R again', 'Stop recording') + ' to stop. It stops by itself after a minute and a half.', 4000); recUi(true);
+    say('Recording' + (withSound ? ' with sound' : A.on ? ' without sound' : '') + '. It stops by itself after a minute and a half.', 4000); recUi(true);
     return true;
   }
   function record() {
@@ -1573,6 +1704,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     if (SAVE.rec) { stopRec(); return; }
     if (SAVE.busy) { return; }
     if (!canSave()) { say('Saving is not available in this view.', 3000); return; }
+    if (S.paused) { setPaused(false); }      /* a clip of a paused picture would hold nothing: recording sets it going */
     if (SAVE.mode === 'recorder') {
       if (!startRecorder()) { startFrames(function (reason) { say('This browser cannot record a clip: its recorder would not start, and ' + reason + '.', 7000); }); }
     } else {
@@ -1580,18 +1712,39 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     }
   }
   var recBtn = document.getElementById('rec'), drawBtn = document.getElementById('drawb'), soundBtn = document.getElementById('soundb');
-  drawBtn.addEventListener('click', function () { cardOff(); act('a', null); });
+  var pressBtn = document.getElementById('pressb'), pauseBtn = document.getElementById('pauseb'), slowBtn = document.getElementById('slowb'), kalBtn = document.getElementById('kalb'), topRow = document.getElementById('toprow');
+  function setTouch(m) {      /* the bar's one choice of what a touch does: press away, draw in, or drop bubbles (the A and 6 keys still change one at a time) */
+    var b = m === 'bubbles', sp = m === 'spell', wa = m === 'wave', d = m === 'draw';
+    if (S.bubbles === b && !!S.spell === sp && !!S.wave === wa && (b || sp || wa || !!S.drawIn === d)) { return; }      /* a choice already made changes nothing (with Bubbles or Spell, not Draw in underneath either) */
+    S.bubbles = b; S.spell = sp; S.wave = wa; S.drawIn = d;
+    say(wa ? 'Wave: a touch sends out a ripple, and a drag leaves a wake.' : sp ? 'Spell: a touch turns the dots there partway round the ring of colours.' : b ? 'Bubbles on: a touch drops a bubble, and a touch on one pops it.' : 'A touch' + (coarse ? '' : ', or the left button,') + (d ? ' now draws the dots in.' : ' now presses the dots away.'), 2600); status();
+  }
+  pressBtn.addEventListener('click', function () { setTouch('press'); });
+  var spellBtn = document.getElementById('spellb');
+  spellBtn.addEventListener('click', function () { setTouch('spell'); });
+  var waveBtn = document.getElementById('waveb');
+  waveBtn.addEventListener('click', function () { setTouch('wave'); });
+  ['wheight', 'wfar'].forEach(function (id) { document.getElementById(id).addEventListener('change', function () { S[id] = +this.value; say('The next wave: ' + WAVEHW[S.wheight] + ', going ' + WAVEGO[S.wfar] + '.', 2500); status(); }); });
+  ['ssize', 'sturn', 'slast'].forEach(function (id) { document.getElementById(id).addEventListener('change', function () { S[id] = +this.value; say('The next spell: ' + ['small', 'middling', 'large'][S.ssize] + ', ' + SPELLW[S.sturn] + ' round, ' + SPELLS[S.slast] + ' s.', 2500); status(); }); });
+  drawBtn.addEventListener('click', function () { setTouch('draw'); });
+  pauseBtn.addEventListener('click', function () { act(' ', null); });
+  slowBtn.addEventListener('click', function () { act('s', null); });
+  kalBtn.addEventListener('click', function () { act('8', null); });
   var popBtn = document.getElementById('popall'), bubBtn = document.getElementById('bubb'), bubSel = document.getElementById('bubk'), bubWrap = document.getElementById('bubkw'), bubVal = document.getElementById('bubkv'), shapeSel = document.getElementById('bshape');
   shapeSel.addEventListener('change', function () { S.shape = +shapeSel.value; sayShape(); status(); });
   var angleSel = document.getElementById('bangle'), circSel = document.getElementById('bcirc');
   circSel.addEventListener('change', function () { S.circ = +circSel.value; sayCirc(); status(); });
+  var groundSel = document.getElementById('bground');
+  groundSel.addEventListener('change', function () {
+    S.lean = +groundSel.value;
+    say(['Flat: the ground inside a bubble is level.', 'A sinkhole: inside a bubble the dots are drawn toward its middle.', 'A mountain: inside a bubble the dots are pressed away from its middle.', 'A sinkhole in a mountain: drawn in near the middle, pressed out round it.'][S.lean], 3000); status();
+  });
   angleSel.addEventListener('change', function () { S.angle = +angleSel.value; say('Angled shapes now open at ' + BANG[S.angle] + '\u00b0.', 2200); status(); });
-  bubBtn.addEventListener('click', function () { cardOff(); act('6', null); });
+  bubBtn.addEventListener('click', function () { setTouch('bubbles'); });
   popBtn.addEventListener('click', function () { cardOff(); popAll(); });
   bubSel.addEventListener('input', function () { S.bubk = +bubSel.value; bubVal.textContent = BUBN[S.bubk]; bubSel.setAttribute('aria-valuetext', BUBN[S.bubk]); });      /* it reads its share as it moves */
   bubSel.addEventListener('change', function () { S.bubk = +bubSel.value; say('The next bubble holds ' + shareSay() + '.', 3600); status(); });      /* and says it in words when let go */
-  soundBtn.addEventListener('click', function () { cardOff(); act('m', null); });
-  document.getElementById('still').addEventListener('click', still);
+  soundBtn.addEventListener('click', function () { act('m', null); });
   recBtn.addEventListener('click', record);
 
   /* Status marks: what is switched on, where the drift is in its cycle, and whether there is sound. */
@@ -1601,9 +1754,13 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     if (SAVE.rec || CLIP) { i = Math.floor((Date.now() - SAVE.t0) / 1000); t.push('Recording, ' + Math.floor(i / 60) + ':' + (i % 60 < 10 ? '0' : '') + (i % 60)); }
     if (S.paused) { t.push('Paused'); }
     if (S.bubbles) { c = shapeOf(); t.push(c.n > 1 ? 'Touch drops ' + (c.word === 'angle' ? 'an angle of 9 at ' + c.deg + '\u00b0' : 'a ' + c.word + ' of ' + c.n) + ' holding ' + BUBN[S.bubk] : (c.round ? 'Touch drops a round bubble holding ' : 'Touch drops a bubble holding ') + BUBN[S.bubk]); }
+    if (S.bubbles && S.lean) { t.push('Bubbles: ' + LEANW[S.lean]); }
+    if (S.spell) { t.push('Touch casts a spell: ' + SPELLW[S.sturn] + ' round, ' + SPELLS[S.slast] + ' s'); }
+    if (S.wave) { t.push('Touch sends a wave: ' + WAVEHW[S.wheight] + ', going ' + WAVEGO[S.wfar]); }
+    if (S.spells.length) { t.push(S.spells.length + (S.spells.length === 1 ? ' spell' : ' spells')); }
     if (S.bubbles && S.circ === 1) { t.push('Bubbles go set ways'); } else if (S.bubbles && S.circ === 0) { t.push('Bubbles held, not fracturing'); }
     if (F.bub && F.bub.length) { t.push(F.bub.length + (F.bub.length === 1 ? ' bubble' : ' bubbles')); }
-    if (S.drawIn) { t.push('Touch draws in'); }
+    if (S.drawIn && !S.bubbles && !S.spell && !S.wave) { t.push('Touch draws in'); }
     if (S.slowmo) { t.push('Quarter speed'); }
     if (F.held) { t.push('Drift held'); }
     if (F.wander) { t.push('Drift wandering'); }
@@ -1626,7 +1783,10 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       while (tagsEl.firstChild) { tagsEl.removeChild(tagsEl.firstChild); }
       for (i = 0; i < t.length; i++) { li = document.createElement('li'); li.textContent = t[i]; tagsEl.appendChild(li); }
     }
-    drawBtn.setAttribute('aria-pressed', S.drawIn ? 'true' : 'false'); bubBtn.setAttribute('aria-pressed', S.bubbles ? 'true' : 'false'); popBtn.hidden = !(F.bub && F.bub.length); bubWrap.hidden = !S.bubbles; bubSel.value = String(S.bubk); bubVal.textContent = BUBN[S.bubk]; bubSel.setAttribute('aria-valuetext', BUBN[S.bubk]); shapeSel.hidden = !S.bubbles; shapeSel.value = String(S.shape); angleSel.hidden = !S.bubbles || S.shape !== 3; angleSel.value = String(S.angle); circSel.hidden = !S.bubbles; circSel.value = String(S.circ); soundBtn.setAttribute('aria-pressed', A.on ? 'true' : 'false');
+    pressBtn.setAttribute('aria-pressed', !S.bubbles && !S.spell && !S.wave && !S.drawIn ? 'true' : 'false'); drawBtn.setAttribute('aria-pressed', !S.bubbles && !S.spell && !S.wave && S.drawIn ? 'true' : 'false'); spellBtn.setAttribute('aria-pressed', S.spell ? 'true' : 'false'); waveBtn.setAttribute('aria-pressed', S.wave ? 'true' : 'false'); bubBtn.setAttribute('aria-pressed', S.bubbles ? 'true' : 'false');
+    pauseBtn.classList.toggle('paused', !!S.paused); pauseBtn.setAttribute('aria-label', S.paused ? 'Go' : 'Pause'); slowBtn.setAttribute('aria-pressed', S.slowmo ? 'true' : 'false'); kalBtn.setAttribute('aria-pressed', S.kal ? 'true' : 'false');
+    popBtn.hidden = !S.bubbles; popBtn.setAttribute('aria-disabled', F.bub && F.bub.length ? 'false' : 'true'); bubWrap.hidden = !S.bubbles; topRow.hidden = !S.bubbles && recBtn.hidden;
+     bubSel.value = String(S.bubk); bubVal.textContent = BUBN[S.bubk]; bubSel.setAttribute('aria-valuetext', BUBN[S.bubk]); shapeSel.value = String(S.shape); angleSel.value = String(S.angle); circSel.value = String(S.circ); groundSel.value = String(S.lean); document.getElementById('ssize').value = String(S.ssize); document.getElementById('sturn').value = String(S.sturn); document.getElementById('slast').value = String(S.slast); document.getElementById('wheight').value = String(S.wheight); document.getElementById('wfar').value = String(S.wfar); soundBtn.setAttribute('aria-pressed', A.on ? 'true' : 'false');
     fitPanels(); legendState(); clearMarks();
     beatEl.className = A.on ? 'on' : '';
     c = Math.cos(drift1(F));
@@ -1638,54 +1798,91 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     var real = (ts - S.last) / 1000, dt = Math.min(1 / 30, real);
     S.last = ts;
     if (ptr.down) { placeXY(ptr.sx, ptr.sy); }
-    stepField(S.F, dt * 0.8 * (S.slowmo ? 0.25 : 1), ptr); ageBubbles(); paint();
+    applySpells(); stepField(S.F, dt * 0.8 * (S.slowmo ? 0.25 : 1), ptr); ageBubbles(); ageSpells(); ageWaves(); paint();
     A.count += 1; if (A.count >= 6) { A.count = 0; listen(); }
     if (CLIP) { clipFrame(); } else if (SAVE.rec && SAVE.cv) { SAVE.cx.drawImage(V, 0, 0, SAVE.cv.width, SAVE.cv.height); }
     if (S.frames % 12 === 0) { status(); }
     S.frames += 1; if (real > 0.026) { S.slow += 1; }
     if (S.frames >= 90) {
-      if (S.slow > 50 && S.F.n > 3000) { crowd(Math.round(S.F.n * 0.75)); say('Thinned the crowd to ' + num(S.F.n) + ' dots so the picture keeps up.', 4000); }
+      if (S.slow > 50 && S.F.n > 3000) { crowd(Math.round(S.F.n * 0.75)); if ((!card || card.className === 'gone') && (!hint.textContent || hint.className || /^(Thinned the crowd to )?[\d,]+ dots/.test(hint.textContent))) { say('Thinned the crowd to ' + num(S.F.n) + ' dots so the picture keeps up.', 4000); } }      /* said only when the message line is free, or only names a count of dots; the dots' tag shows it anyway */
       S.frames = 0; S.slow = 0;
     }
     S.raf = requestAnimationFrame(tick);
   }
   function go() { if (!S.raf && !S.paused && !document.hidden) { S.last = 0; S.raf = requestAnimationFrame(tick); } }
-  function setPaused(p) { S.paused = p; say(p ? 'Paused. Press ' + keyName('space', 'Pause') + ' to carry on.' : 'Carrying on.', p ? 0 : 1500); audioLevel(); status(); if (!p) { go(); } }
+  function setPaused(p) { S.paused = p; say(p ? (coarse ? 'Paused. Tap the picture to carry on.' : 'Paused. Press space to carry on.') : 'Carrying on.', p ? 0 : 1500); audioLevel(); status(); if (!p) { go(); } }
 
   size();
   S.F.tc = OPEN;
   (function () { var i; for (i = 0; i < 260; i++) { stepField(S.F, 1 / 60, null); } for (i = 0; i < 50; i++) { stepField(S.F, 1 / 60, null); paint(); } }());
   setLegend(false);
-  /* The title card: the name, what it is, and the author's line about it. It fades after a few seconds, or at the first touch or key, and the hint follows. */
+  /* The title card: the name, what it is, and the author's line about it. It stays until the first touch or key, or 15 seconds, so a slow reader can finish it, and the hint follows. */
   var card = document.getElementById('card'), cardT = 0, coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-  var HINT = coarse ? 'Touch to press the dots away. Turn on Draw in and a touch draws them in; turn on Bubbles and it drops bubbles. Show the legend for everything else.'
-    : 'Hold the mouse button to press the dots away, or the right button to draw them in. Turn on Bubbles and a click drops bubbles. Press H, or Show the legend, for everything else.';
+  var HINT = coarse ? 'Touch to press the dots away. Draw in and Bubbles change what a touch does.'
+    : 'Hold the mouse button to press dots away. Shift or the right button draws in.';
   function cardOff() {
     if (!card || card.className === 'gone') { return; }
     clearTimeout(cardT); card.className = 'gone'; card.setAttribute('aria-hidden', 'true');
-    if (!reduce) { say(HINT, 9000); }
+    if (!reduce) { say(HINT, 9000); } else if (S.paused) { say(coarse ? 'Paused. Tap the picture to set it going.' : 'Paused. Press space to set it going.', 0); }      /* with reduced motion it opens paused, and says so once the card has gone */
   }
-  cardT = setTimeout(cardOff, reduce ? 12000 : 7000);
-  V.addEventListener('pointerdown', cardOff);
-  document.addEventListener('keydown', cardOff);
+  cardT = setTimeout(cardOff, 15000);
+  function placeCard() {      /* between the line along the top and the bar: a little above the middle, its foot 10 px over the bar */
+    if (!card || card.className === 'gone') { return; }
+    var H = window.innerHeight, b = barEl.getBoundingClientRect().top, lo = Math.round(hint.getBoundingClientRect().top), h = card.offsetHeight || 0, c, k;
+    k = h ? Math.min(1, (b - 10 - (lo - 24)) / h) : 1;
+    if (k < 0.5) { b = barEl.getBoundingClientRect().bottom + 10; k = h ? Math.min(1, (b - 10 - (lo - 24)) / h) : 1; }      /* too small to read: it runs down over the bar instead */
+    card.style.zIndex = b > barEl.getBoundingClientRect().bottom ? '1' : ''; card.style.transform = k < 1 ? 'translate(-50%, -50%) scale(' + k.toFixed(3) + ')' : ''; h = h * k;      /* taller than all the room: drawn smaller, so nothing is cut off */
+    c = Math.min(0.44 * H, b - 10 - h / 2); if (h <= b - 10 - lo) { c = Math.max(c, lo + h / 2); } c = Math.max(c, lo - 24 + h / 2);
+    card.style.top = Math.round(c) + 'px'; card.setAttribute('data-placed', '');
+  }
+  placeCard(); window.addEventListener('resize', placeCard);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(placeCard); }
+  V.addEventListener('pointerdown', cardOff); V.addEventListener('wheel', cardOff, { passive: true });
+  document.addEventListener('keydown', cardOff); barEl.addEventListener('click', cardOff, true); barEl.addEventListener('wheel', cardOff, { passive: true });      /* as does any button on the bar, before the button acts, and a turn of the wheel over it */
+  if (coarse) { legend.setAttribute('aria-label', 'Legend and controls. Each row can be pressed.'); }      /* on a touch screen no key is named, to a screen reader either */
   if (!document.documentElement.requestFullscreen) { (function () { var fr = legend.querySelector('[data-k="f"]'); if (fr && fr.parentNode) { fr.parentNode.hidden = true; } }()); }
-  if (reduce) { say('Paused. Press space or tap to set it going.', 0); }
   go();
 
   window.addEventListener('resize', size); window.addEventListener('resize', fitPanels);
-  window.addEventListener('resize', function () { if (clash()) { setLegend(false); S.legBack = true; } clearMarks(); });
+  window.addEventListener('resize', function () { if (clash()) { stepAside(); } clearMarks(); });
   document.addEventListener('visibilitychange', function () { if (A.ctx) { if (document.hidden) { A.ctx.suspend(); } else if (A.on) { A.ctx.resume(); } } go(); });
   V.addEventListener('contextmenu', function (ev) { ev.preventDefault(); });
+  /* The fingers (or the mouse) pressing on the picture, the newest last. The press follows the newest; when it lifts, the one before takes
+     over, so lifting one finger does not stop the others. */
+  var presses = [];
+  function pressFrom(p) { if (p) { ptr.sx = p.x; ptr.sy = p.y; ptr.sign = p.sign; ptr.down = true; placeXY(ptr.sx, ptr.sy); } else { ptr.down = false; } }
+  function pressEnd(ev) { var i; if (S.wake && S.wake.id === ev.pointerId) { S.wake = null; } for (i = presses.length - 1; i >= 0; i--) { if (presses[i].id === ev.pointerId) { presses.splice(i, 1); } } pressFrom(presses[presses.length - 1]); }
   V.addEventListener('pointerdown', function (ev) {
+    var i;
+    if (ev.isPrimary) {      /* a first finger, or the mouse: nothing else of its kind is down, whatever lift was missed */
+      for (i = presses.length - 1; i >= 0; i--) { if (presses[i].type === ev.pointerType) { presses.splice(i, 1); } }
+      pressFrom(presses[presses.length - 1]);
+    }
     if (S.paused && ev.pointerType !== 'mouse') { setPaused(false); return; }
     ptr.sx = ev.clientX; ptr.sy = ev.clientY; placeXY(ptr.sx, ptr.sy);
-    if (S.bubbles && ev.button !== 2 && !ev.shiftKey) { bubbleAt(ptr.x, ptr.y); return; }
-    ptr.down = true; ptr.sign = ((ev.button === 2 || ev.shiftKey) !== !!S.drawIn) ? -1 : 1;
+    if (S.wave && ev.button !== 2 && !ev.shiftKey) { waveAt(ptr.x, ptr.y); S.wake = { id: ev.pointerId, x: ptr.x, y: ptr.y }; pressFrom(presses[presses.length - 1]); return; }      /* a wave goes out where it lands, and a drag from there leaves a wake */
+    if (S.spell && ev.button !== 2 && !ev.shiftKey) { castAt(ptr.x, ptr.y); pressFrom(presses[presses.length - 1]); return; }      /* a spell is cast where it lands */
+    if (S.bubbles && ev.button !== 2 && !ev.shiftKey) { bubbleAt(ptr.x, ptr.y); pressFrom(presses[presses.length - 1]); return; }      /* a finger still pressing goes on where it is */
+    presses.push({ id: ev.pointerId, type: ev.pointerType, x: ev.clientX, y: ev.clientY, sign: ((ev.button === 2 || ev.shiftKey) !== !!S.drawIn) ? -1 : 1 }); pressFrom(presses[presses.length - 1]);
   });
-  V.addEventListener('pointermove', function (ev) { ptr.sx = ev.clientX; ptr.sy = ev.clientY; if (ptr.down) { placeXY(ptr.sx, ptr.sy); } });
-  V.addEventListener('pointerup', function () { ptr.down = false; });
-  V.addEventListener('pointercancel', function () { ptr.down = false; });
-  V.addEventListener('pointerleave', function () { ptr.down = false; });
+  V.addEventListener('pointermove', function (ev) {
+    var i, p = presses[presses.length - 1];
+    for (i = 0; i < presses.length; i++) { if (presses[i].id === ev.pointerId) { presses[i].x = ev.clientX; presses[i].y = ev.clientY; } }
+    if (S.wake && S.wake.id === ev.pointerId) {      /* a wake: a ripple each time the drag has gone a little way */
+      placeXY(ev.clientX, ev.clientY); var F = S.F, wk = S.wake, ddx = wrapd(ptr.x - wk.x, F.w), ddy = wrapd(ptr.y - wk.y, F.h);
+      if (ddx * ddx + ddy * ddy >= WAKESTEP * WAKESTEP) { waveAt(ptr.x, ptr.y, true); wk.x = ptr.x; wk.y = ptr.y; }
+      if (p) { placeXY(ptr.sx, ptr.sy); }
+    }
+    if (!presses.length) { ptr.sx = ev.clientX; ptr.sy = ev.clientY; } else if (p.id === ev.pointerId) { pressFrom(p); }
+  });
+  V.addEventListener('pointerup', pressEnd);
+  V.addEventListener('pointercancel', pressEnd);
+  V.addEventListener('pointerleave', pressEnd);
+  /* A mouse let go while the page is hidden lets go elsewhere: its press is set aside, and taken up again only if the button is still held
+     on the picture at the first move back. */
+  document.addEventListener('visibilitychange', function () { var i; if (document.hidden) { for (i = presses.length - 1; i >= 0; i--) { if (presses[i].type === 'mouse') { S.hidPress = presses.splice(i, 1)[0]; } } pressFrom(presses[presses.length - 1]); } });
+  function hidBack(ev) { if (S.hidPress && ev.pointerType === 'mouse') { if (ev.type === 'pointermove' && ev.buttons && ev.target === V) { presses.push(S.hidPress); } S.hidPress = null; } }
+  document.addEventListener('pointermove', hidBack, true); document.addEventListener('pointerdown', hidBack, true);
   /* Room: how close a position lets others come before it presses them away, in five steps from a quarter of what it began with to four times. */
   S.wheel = 0; S.wheelT = 0;
   function roomStep(d) {
@@ -1717,7 +1914,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   var legRows = legend.querySelectorAll('[data-s]'), legLast = '';
   function legendState() {
     var F = S.F, st, key, i, e, k, v, t;
-    st = { drawin: !!S.drawIn, paused: !!S.paused, slow: !!S.slowmo, held: !!F.held, follow: S.follow >= 0, zoom: S.zoom > 1, long: !!S.long, sound: !!A.on, panel: !!panel && !panel.hidden,
+    st = { spell: !!S.spell, wave: !!S.wave, drawin: !!S.drawIn, paused: !!S.paused, slow: !!S.slowmo, held: !!F.held, follow: S.follow >= 0, zoom: S.zoom > 1, long: !!S.long, sound: !!A.on, panel: !!panel && !panel.hidden,
       kal: !!S.kal, rec: !!(SAVE.rec || CLIP), marks: !document.body.classList.contains('nomarks'), full: !!document.fullscreenElement,
       'v:kind': ['Ones and twos', 'Threes added', 'Threes mostly'][S.kind || 0], 'v:light': ['Amber, pale and blue', 'Visible light', 'Shifted by motion'][S.light || 0], 'v:theme': S.dark ? 'Dark' : 'Light',
       'v:faint': ['Full', 'Fainter', 'Fainter still'][S.faint || 0], 'v:drift': F.wander ? 'Wandering' : 'On its cycle', 'v:avg': F.smooth ? 'Smoothed' : 'Square', 'v:mem': F.mem === 0 ? 'None' : 'About ' + (F.mem === 1.5 ? '2' : F.mem === 3 ? '4' : F.mem === 12 ? '15' : '45') + ' s', wear: !!S.wear, land: !!S.land, bubbles: !!S.bubbles, 'v:shape': ['Round', 'Shaped by the share', 'Stacked 4, 3, 2', 'Angled'][S.shape], 'v:angle': BANG[S.angle] + '\u00b0', 'v:circ': S.circ === 1 ? 'Set ways' : S.circ === 0 ? 'Held parallel' : 'Held, fracturing', 'v:bubk': BUBN[S.bubk], 'v:n': num(F.n), 'v:room': ROOMN[S.roomi], 'v:voice': BVOX[A.bvoice].name };
@@ -1736,13 +1933,24 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     clearTimeout(S.legT);
     act(b.getAttribute('data-k'), null);
   });
+  legend.addEventListener('keydown', function (ev) { if (ev.repeat && ev.key === 'Enter' && ev.target.getAttribute && ev.target.getAttribute('data-k') === 'l') { ev.preventDefault(); } });      /* Enter held on Light or dark counts once, as L does */
 
-  var panel = document.getElementById('sound'), sndBtn = document.getElementById('snd');
+  var panel = document.getElementById('sound');
   function el(id) { return document.getElementById(id); }
+  /* Where the legend and the sound options take turns, a keyboard in one goes with the swap: into the sound options, and back to where it was in
+     the legend. Not when a press left it there. */
+  function startAt(box) {      /* where the next Tab goes from, when nothing shown has the keyboard */
+    var a = document.activeElement; if (a && a !== document.body && a.getClientRects().length) { return; }
+    box.tabIndex = -1; box.focus({ preventScroll: true }); box.blur(); box.removeAttribute('tabindex');
+  }
+  function kbIn(box) { var a = document.activeElement; return !!a && box.contains(a) && !pressedOn(a); }
+  function stepAside() { var kb = kbIn(legend); S.legKb = kb ? document.activeElement : null; setLegend(false); S.legBack = true; if (kb) { el('o-on').focus(); } }
+  function kbBack() { var e = S.legKb, t = legend.querySelector('.tabs [aria-pressed="true"]'); S.legKb = null; if (e && legend.contains(e) && e.getClientRects().length) { e.focus(); } else if (t && t.getClientRects().length) { t.focus(); } else { keysBtn.focus(); } }
   function setPanel(open) {
-    panel.hidden = !open; sndBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); sndBtn.textContent = open ? 'Hide the sound options' : 'Sound options'; fitLast = ''; fitPanels();      /* placed once the button's new words have set the bar's height */
-    if (open && clash()) { setLegend(false); S.legBack = true; }             /* the legend steps aside, and comes back when these close */
-    else if (!open && S.legBack) { S.legBack = false; setLegend(true); }
+    var was = kbIn(panel);
+    panel.hidden = !open; fitLast = ''; fitPanels();
+    if (open && clash()) { stepAside(); }             /* the legend steps aside, and comes back when these close */
+    else if (!open && S.legBack) { S.legBack = false; setLegend(true); if (was) { kbBack(); } }
     clearMarks();
   }
   function syncPanel() {
@@ -1754,7 +1962,6 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     A.on = on; if (A.on && A.ctx.resume) { A.ctx.resume(); }
     voiceKind(); audioLevel(); syncPanel();
   }
-  sndBtn.addEventListener('click', function () { setPanel(panel.hidden); });
   el('o-on').addEventListener('change', function () { soundOn(el('o-on').checked); });
   el('o-whole').addEventListener('change', function () { A.wholeOn = el('o-whole').checked; say(A.wholeOn ? 'The soft hum for the whole is on: each bubble\u2019s share is heard against it.' : 'The hum for the whole is off. The bubbles keep their pitches.', 2600); });
   el('o-bvox').addEventListener('change', function () { setBubbleVoice(+el('o-bvox').value); status(); });
@@ -1763,10 +1970,25 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   el('o-level').addEventListener('input', function () { A.level = +el('o-level').value / 100; audioLevel(); syncPanel(); });
   syncPanel();
   function pointerWorld() { if (ptr.sx < 0) { ptr.sx = S.cw / S.ps / 2; ptr.sy = S.ch / S.ps / 2; } placeXY(ptr.sx, ptr.sy); }
+  /* A button, menu or slider pressed with the mouse or a finger lets go of the keyboard afterwards, so Space goes on pausing and the keys go on
+     working; one reached with Tab, or used by a screen reader, keeps it, and Space presses it as usual. byPointer is what the last press landed on,
+     until a key is pressed. */
+  var byPointer = null;
+  function pressedOn(t) { var i, by = !!(t && byPointer && byPointer.nodeType && t.contains(byPointer)); for (i = 0; !by && t && t.labels && i < t.labels.length; i++) { by = t.labels[i].contains(byPointer); } return by; }
+  function letGo(ev) { var t = ev.target && ev.target.closest ? ev.target.closest('button, input, select') : null; if (pressedOn(t) && t.blur && !(ev.type === 'click' && t.tagName === 'SELECT')) { t.blur(); byPointer = null; } }
+  document.addEventListener('pointerdown', function (ev) { byPointer = ev.target; }, true);
+  document.addEventListener('keydown', function (ev) {      /* a menu opened by a press lets go at the first key that is not its own */
+    var t = ev.target; if (/^(Shift|Control|Alt|Meta)$/.test(ev.key)) { return; }      /* a key held with the press is part of it */
+    if (t && t.tagName === 'SELECT' && pressedOn(t) && !/^(Arrow|Enter|Tab|Home|End|Page)/.test(ev.key)) { t.blur(); } byPointer = null;
+  }, true);
+  document.addEventListener('click', letGo); document.addEventListener('change', letGo);
+  document.addEventListener('pointerup', function (ev) {      /* also a press that slid off, or the right button: no click (a finger's tap gives the keyboard after its lift, so it is let go at the click) */
+    var a = document.activeElement; if (ev.pointerType === 'touch') { return; } if (a && (a.tagName === 'BUTTON' || a.tagName === 'INPUT') && pressedOn(a)) { a.blur(); byPointer = null; }
+  });
   document.addEventListener('keydown', function (ev) {
-    var k = ev.key, tag = ev.target && ev.target.tagName;
+    var k = ev.key, tag = document.activeElement && document.activeElement.tagName;
     if (ev.ctrlKey || ev.metaKey || ev.altKey) { return; }
-    if (tag === 'SELECT') { return; }
+    if (tag === 'SELECT' && k !== 'Escape') { return; }
     if (tag === 'INPUT' && (k === ' ' || k.indexOf('Arrow') === 0 || k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown')) { return; }
     if (tag === 'BUTTON' && (k === ' ' || k === 'Enter')) { return; }
     act(k, ev);
@@ -1774,10 +1996,19 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   function act(k, ev) {
     var F = S.F, i, q, d, best, dx, dy;
     if (k === ' ') { if (ev) { ev.preventDefault(); } setPaused(!S.paused); }
-    else if (k === 'a' || k === 'A') { S.drawIn = !S.drawIn; say(S.drawIn ? 'A touch' + (coarse ? '' : ', or the left button,') + ' now draws the dots in.' : 'A touch' + (coarse ? '' : ', or the left button,') + ' presses the dots away again.', 2600); }
+    else if (k === 'Escape') {        /* closes what is open, and puts the keyboard back on the button that opens it */
+      if (!panel.hidden || !legend.hidden) {
+        S.legBack = false; q = document.activeElement;
+        if (!panel.hidden) { setPanel(false); if (q && panel.contains(q)) { keysBtn.focus(); } }
+        if (!legend.hidden) { setLegend(false); if (q && legend.contains(q)) { keysBtn.focus(); } }
+      }
+    }
+    else if (k === 'a' || k === 'A') { S.drawIn = !S.drawIn; say((S.bubbles ? 'Once ' + keyName('6', 'the Bubbles row') + ' turns Bubbles off, a touch' : 'A touch') + (coarse ? '' : ', or the left button,') + (S.bubbles ? (S.drawIn ? ' draws the dots in.' : ' presses the dots away.') : S.drawIn ? ' now draws the dots in.' : ' presses the dots away again.'), 2600); }
+    else if (k === ';') { S.wave = !S.wave; if (S.wave) { S.bubbles = false; S.spell = false; } say(S.wave ? 'Wave: a touch sends out a ripple, and a drag leaves a wake.' : 'Wave off.' + (S.drawIn ? ' A touch draws the dots in again.' : ' A touch presses the dots away again.'), 2600); }
+    else if (k === 'k' || k === 'K') { S.spell = !S.spell; if (S.spell) { S.bubbles = false; S.wave = false; } say(S.spell ? 'Spell: a touch turns the dots there partway round the ring of colours.' : 'Spell off.' + (S.drawIn ? ' A touch draws the dots in again.' : ' A touch presses the dots away again.'), 2600); }
     else if (k === '6') {
-      S.bubbles = !S.bubbles;
-      say(S.bubbles ? 'Bubbles on. A touch drops a bubble, and a touch on one pops it. The next holds ' + shareSay() + '.' : 'Bubbles off.' + (S.drawIn ? ' A touch draws the dots in again.' : ' A touch presses the dots away again.'), S.bubbles ? 5600 : 1800);
+      S.bubbles = !S.bubbles; if (S.bubbles) { S.spell = false; S.wave = false; }
+      say(S.bubbles ? 'Bubbles on: a touch drops a bubble, and a touch on one pops it.' : 'Bubbles off.' + (S.drawIn ? ' A touch draws the dots in again.' : ' A touch presses the dots away again.'), S.bubbles ? 3000 : 1800);
     }
     else if (k === '7') { i = 0; for (q = 0; q < FAVI.length; q++) { if (FAVI[q] > S.bubk) { i = q; break; } } S.bubk = FAVI[i]; say('The next bubble holds ' + shareSay() + '.', 3600); }      /* the next of the shares the menu had, round again after 81/1 */
     else if (k === '9') { S.shape = (S.shape + 1) % 4; sayShape(); }      /* round, shaped by the share, stacked, angled */
@@ -1790,12 +2021,12 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       best = Math.max(0, Math.min(CROWDS.length - 1, best + (k === 'more' ? 1 : -1)));
       crowd(CROWDS[best]); say(num(F.n) + ' dots.', 1800);
     }
-    else if (k === 'o' || k === 'O') { setPanel(panel.hidden); }
+    else if (k === 'o' || k === 'O') { setPanel(panel.hidden); startAt(!panel.hidden ? panel : !legend.hidden ? legend : el('bar')); }
     else if (k >= '1' && k <= '5') { crowd(CROWDS[+k - 1]); say(num(F.n) + ' dots.', 1800); }
     else if (k === 's' || k === 'S') { S.slowmo = !S.slowmo; say(S.slowmo ? 'A quarter of the speed.' : 'Back to full speed.', 1800); }
     else if (k === 'ArrowRight') {
       if (ev) { ev.preventDefault(); }
-      if (S.paused) { for (q = 0; q < 12; q++) { stepField(F, 0.8 / 60, null); paint(); } say('Stepped on a moment. Press ' + keyName('space', 'Pause') + ' to carry on.', 0); }
+      if (S.paused) { for (q = 0; q < 12; q++) { stepField(F, 0.8 / 60, null); paint(); } say(coarse ? 'Stepped on a moment. Tap the picture to carry on.' : 'Stepped on a moment. Press space to carry on.', 0); }
       else { say(coarse ? 'Pause first, then Step moves it on.' : 'Pause first with space, then the right arrow steps it forward.', 2500); }
     }
     else if (k === 'd' || k === 'D') { F.held = !F.held; say(F.held ? 'Drift held: ' + mood() + '. It stays this way until you press ' + keyName('D', 'Hold the drift') + ' again.' : 'The drift goes on.', F.held ? 4500 : 1800); }
@@ -1830,7 +2061,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       S.landOf = dx; S.land = true; say('The same ground, for a dot of the opposite colour. Where the first dot was drawn, this one is turned away, except for the part that comes from the twos, which stays the same. The ring has moved to it.', 5600);
       if (S.paused) { paint(); }
     }
-    else if (k === 'y' || k === 'Y') { S.wear = !S.wear; say(S.wear ? 'The ground is shown, shaded where dots crowd. With a memory (G), it shows where they have crowded lately.' : 'The ground is hidden.', 3600); }
+    else if (k === 'y' || k === 'Y') { S.wear = !S.wear; say(S.wear ? 'The ground is shown, shaded where dots crowd. With a memory (' + keyName('G', 'Ground memory') + '), it shows where they have crowded lately.' : 'The ground is hidden.', 3600); }
     else if (k === 'w' || k === 'W') {
       if (!F.wander && F.mix === 0) { F.wx = wave1(F.tc) - 1.25; F.wx2 = wave2(F.tc) - 2.2; F.wx3 = wave3(F.tc) - 1.7; F.w3 = F.tc * 0.023 + 2; }             /* it sets off from wherever the cycle has it */
       F.wander = !F.wander;
@@ -1867,11 +2098,13 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       S.faint = ((S.faint || 0) + 1) % 3;
       say(S.faint === 0 ? 'Dots at full strength.' : S.faint === 1 ? 'Dots fainter, so the crowded middles of clumps keep their colour.' : 'Dots fainter still.', 2400);
     }
-    else if (k === 'l' || k === 'L') { document.documentElement.setAttribute('data-theme', S.dark ? 'light' : 'dark'); say(S.dark ? 'Ink on paper.' : 'Light on dark.', 1800); }
+    else if (k === 'l' || k === 'L') {        /* at most once a second, so pressing it over and over cannot make the screen flash */
+      if (!(ev && ev.repeat) && performance.now() - (S.themeT || -1e9) >= 1000) { S.themeT = performance.now(); document.documentElement.setAttribute('data-theme', S.dark ? 'light' : 'dark'); say(S.dark ? 'Ink on paper.' : 'Light on dark.', 1800); }
+    }
     else if (k === 'm' || k === 'M') {
       soundOn(!A.on);
       if (!A.ctx) { return; }
-      say(A.on ? 'Sound on. Each bubble sounds its share against a soft hum for the whole, in tune while it holds its share. Each clump sounds a note of its colour, and the rush of air is the streaming between them.' : 'Sound off.', A.on ? 6500 : 1500);
+      say(A.on ? 'Sound on: each bubble sounds its share' + (A.kind === 2 ? '.' : ', each clump its colour.') : 'Sound off.', A.on ? 3000 : 1500);
     }
     else if (k === 'c' || k === 'C') {
       S.kind = ((S.kind || 0) + 1) % 3;
@@ -1888,12 +2121,12 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       say(k === '-' ? 'Quieter.' : 'Louder.', 1200);
     }
     else if (k === 't' || k === 'T') { S.long = !S.long; say(S.long ? 'Longer trails.' : 'Shorter trails.', 1800); }
-    else if (k === 'h' || k === 'H') { setLegend(legend.hidden); }
+    else if (k === 'h' || k === 'H') { setLegend(legend.hidden); startAt(legend.hidden ? el('bar') : legend); }
     else if (k === 'x' || k === 'X') {
       S.light = ((S.light || 0) + 1) % 3;
       say(S.light === 0 ? 'Colours: amber, pale and blue, each dot in the colour of its own character, with no shift.' : S.light === 1 ? 'Visible light: each dot a rainbow colour of its own, with no shift.' : 'Shifted by motion: dots coming toward the middle of the screen turn bluer, and dots going away turn redder; the rings of bubbles shift the same way as they turn and drift. Press ' + keyName('V', 'Ride along') + ' to watch from one dot instead.', S.light === 2 ? 6000 : 3000);
     }
-    else if (k === '8' || k === '*') { S.kal = !S.kal; show(); say(S.kal ? 'Kaleidoscope: one twelfth of the picture, turned and mirrored six times round. Most of what you see isn\u2019t where anything really is.' : 'The picture as it really is.', 4500); }
+    else if (k === '8' || k === '*') { S.kal = !S.kal; show(); say(S.kal ? 'Kaleidoscope: one twelfth of the picture, turned and mirrored six times round.' : 'The picture as it really is.', 4500); }
     else if (k === 'p' || k === 'P') { still(); }
     else if (k === 'r' || k === 'R') { record(); }
     else if (k === 'i' || k === 'I') { document.body.classList.toggle('nomarks'); say(document.body.classList.contains('nomarks') ? 'Status marks hidden.' : 'Status marks shown.', 1500); }
@@ -1905,8 +2138,8 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     }
     status();
   }
-  if (window.matchMedia) { var mq = window.matchMedia('(prefers-color-scheme: dark)'); if (mq.addEventListener) { mq.addEventListener('change', theme); } }
-  if ('MutationObserver' in window) { new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); }
+  if (window.matchMedia) { var mq = window.matchMedia('(prefers-color-scheme: dark)'); if (mq.addEventListener) { mq.addEventListener('change', function () { theme(); status(); }); } }      /* the rows and marks show the new colours at once, paused too */
+  if ('MutationObserver' in window) { new MutationObserver(function () { theme(); status(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); }
 })();
 </script>
 
