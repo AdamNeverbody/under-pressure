@@ -70,9 +70,12 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 #pauseb .go, #pauseb.paused .stop { visibility: hidden; }
 #pauseb.paused .go { visibility: visible; }
 #bar .main .wide { display: none; }
-@media (min-width: 43em) { #bar .main .wide { display: inline-flex; } #bar .seg #spellb { border-radius: 0; } }      /* room for Wave, Slower and Kaleidoscope (Wave as wide as Spell or a little wider: about 645 px of row, against 656 of room at 688 px) */
+#bar .seg.waving #waveb { display: inline-flex; }      /* while Wave is chosen it is on the bar at every width, where there is no room for both in Spell's place, so what a touch does is always lit */
+#bar .seg.waving #spellb { display: none; }
+@media (min-width: 29.25em) { #bar .seg #spellb, #bar .seg #waveb { min-width: 4.2em; } }      /* the two as wide as each other, so nothing beside them moves when one takes the other's place (narrower, both keep the least width) */
+@media (min-width: 43em) { #bar .main .wide { display: inline-flex; } #bar .seg #spellb { border-radius: 0; } #bar .seg.waving #spellb { display: inline-flex; } }      /* room for Wave, Slower and Kaleidoscope (Spell and Wave 54 px each: 649 px of row, against 656 of room at 688 px) */
 @media (max-width: 29.25em) { #bar .main button { padding: 4px 5px; } }      /* a phone: the row fits without squeezing its words */
-@media (max-width: 25.5em) {      /* the smallest phones: the row still fits */
+@media (max-width: 26.25em) {      /* the smaller phones, up to 420 px: the row still fits (from 25.5em it left More a line of its own at 412 and 414 px) */
   #bar .brow { gap: 4px; }
   #bar .main button { min-height: 44px; min-width: 40px; padding: 3px 3px; font-size: 0.72rem; }
   #bar .main svg { width: 16px; height: 16px; }
@@ -169,11 +172,10 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 #legend .tabs { display: none; }
 @media (max-width: 640px), (max-height: 500px) {      /* a phone, held either way: a sheet along the bottom, one part at a time */
   #legend { left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); max-width: none; padding-top: 0; border-radius: 14px; }
-  #legend .tabs { display: flex; gap: 6px; overflow-x: auto; position: sticky; top: 0; z-index: 1; margin: 0 -0.95rem 0.6rem; padding: 0.6rem 0.95rem 0.55rem;
-    background: var(--bg); border-bottom: 1px solid var(--line); scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-  #legend .tabs::-webkit-scrollbar { display: none; }
+  #legend .tabs { display: flex; flex-wrap: wrap; gap: 5px; position: sticky; top: 0; z-index: 1; margin: 0 -0.95rem 0.6rem; padding: 0.6rem 0.95rem 0.55rem;
+    background: var(--bg); border-bottom: 1px solid var(--line); }      /* every tab in view, on as many lines as they take, none hidden off the side */
   #legend.short .tabs { position: static; }      /* a sheet too short for its tabs and a row: the tabs scroll away with the rows, so the rows keep the room */
-  #legend .tabs button { flex: none; min-height: 40px; padding: 0.3rem 0.85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--ink); font: 600 0.86rem var(--ui); cursor: pointer; }
+  #legend .tabs button { flex: none; min-height: 40px; padding: 0.3rem 0.7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--ink); font: 600 0.86rem var(--ui); cursor: pointer; }
   #legend .tabs button[aria-pressed="true"] { background: var(--a); border-color: var(--a); color: var(--bg); }
   #legend .rows { columns: 1; }
   #legend [data-g]:not(.on) { display: none; }
@@ -239,7 +241,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     <li data-g="bubbles"><button type="button" class="row" data-k="Delete"><span class="k"><kbd>Delete</kbd></span><span class="d"><b>Pop all.</b> Pop every bubble at once. To pop just one, touch it while Bubbles is on. The Pop all button does the same.</span></button></li>
     <li data-g="spells"><h3>Spells</h3><button type="button" class="row" data-k="k" data-s="spell" aria-pressed="false"><span class="k"><kbd>K</kbd></span><span class="d"><b>Spell.</b> With this on, a touch casts a spell where it lands. For a while every dot inside its circle has its character turned partway round the ring of colours, so it is drawn to other dots than before; a dot that leaves the circle has its own again, one that comes in is turned, and when the spell lifts every dot has its own again. A faint ring shows where it is and how long it has left. The Spell button does the same, and Press away, Draw in, Bubbles or Wave turns it off.</span></button></li>
     <li data-g="spells" class="menus"><label>Size <select id="ssize" aria-label="Size: how wide the next spell is"><option value="0">small</option><option value="1" selected>middling</option><option value="2">large</option></select></label><label>Round the ring <select id="sturn" aria-label="Round the ring: how far the next spell turns each dot's character"><option value="0">a sixth</option><option value="1" selected>a third</option><option value="2">half</option></select></label><label>How long <select id="slast" aria-label="How long: how long the next spell lasts"><option value="0">5 s</option><option value="1" selected>15 s</option><option value="2">45 s</option></select></label></li>
-    <li data-g="waves"><h3>Waves</h3><button type="button" class="row" data-k=";" data-s="wave" aria-pressed="false"><span class="k"><kbd>;</kbd></span><span class="d"><b>Wave.</b> With this on, a touch sends out a wave: a ring of raised ground, like a ripple on a pond, that spreads from where it lands and sinks as it goes. The dots it reaches are pressed on ahead of it, then fall back behind it, and settle once it has passed. Hold and drag, and ripples go out one after another along the way; going faster than they spread, they overlap into a V trailing behind, like a boat’s wake. A faint ring shows each one. On a wider screen the bar has a Wave button that does the same, and Press away, Draw in, Bubbles or Spell turns it off.</span></button></li>
+    <li data-g="waves"><h3>Waves</h3><button type="button" class="row" data-k=";" data-s="wave" aria-pressed="false"><span class="k"><kbd>;</kbd></span><span class="d"><b>Wave.</b> With this on, a touch sends out a wave: a ring of raised ground, like a ripple on a pond, that spreads from where it lands and sinks as it goes. It sweeps the dots on ahead of it, so they bunch along it, and the higher it is the clearer it leaves the ground inside; as it sinks they flow back in. Hold and drag, and ripples go out one after another along the way; going faster than they spread, they overlap into a V trailing behind, like a boat’s wake. A clear ring shows each one, fading as it sinks. The Wave button on the bar does the same (on a phone it is there while Wave is chosen, in Spell’s place), and Press away, Draw in, Bubbles or Spell turns it off.</span></button></li>
     <li data-g="waves" class="menus"><label>Height <select id="wheight" aria-label="Height: how high the next wave is"><option value="0">low</option><option value="1" selected>middling</option><option value="2">high</option></select></label><label>How far <select id="wfar" aria-label="How far: how far the next wave spreads before it has sunk away"><option value="0">near</option><option value="1" selected>middling</option><option value="2">far</option></select></label></li>
     <li data-g="time"><h3>Time</h3><button type="button" class="row" data-k=" " data-s="paused" aria-pressed="false"><span class="k"><kbd>Space</kbd></span><span class="d"><b>Pause.</b> Stop everything, or start it again.</span></button></li>
     <li data-g="time"><button type="button" class="row" data-k="ArrowRight"><span class="k"><kbd>→</kbd></span><span class="d"><b>Step.</b> While paused, move it on by a moment.</span></button></li>
@@ -544,6 +546,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
         dx = x[i] - wv.x; if (dx > hw) { dx -= w; } else if (dx < -hw) { dx += w; }
         if (dx > wv.R + wv.wd || dx < -wv.R - wv.wd) { continue; }
         dy = y[i] - wv.y; if (dy > hh) { dy -= h; } else if (dy < -hh) { dy += h; }
+        if (dy > wv.R + wv.wd || dy < -wv.R - wv.wd) { continue; }
         rr = Math.sqrt(dx * dx + dy * dy); wd = rr - wv.R;
         if (wd > -wv.wd && wd < wv.wd && rr > 1e-5) { f = wv.f * Math.sin(3.141592654 * wd / wv.wd); fx += f * dx / rr; fy += f * dy / rr; }
       }
@@ -660,7 +663,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   S.roomi = 2;
   var FAVI = [8, 80, 81, 83, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 103, 104, 105, 106, 108, 109, 110, 111, 112, 184];      /* the shares the menu had, which the 7 key jumps between */
   var LEANW = ['flat', 'a sinkhole', 'a mountain', 'a sinkhole in a mountain'];      /* the ground inside the bubbles dropped next */
-  var WAVEK = [3, 6, 12], WAVEHW = ['low', 'middling', 'high'], WAVEF = [0.12, 0.22, 0.36], WAVEGO = ['a little way', 'a middling way', 'far'], WAVEV = 0.1, WAVEWD = 0.03, WAVEMAX = 32, WAKESTEP = 0.04;      /* a wave: how steep its ridge (the pointer presses at 2.2, a bubble's ground at 6), how far it goes before it has sunk away, how fast it spreads, half its ridge's width; 32 at once; on a drag, a ripple every 0.04 */
+  var WAVEK = [4, 8, 16], WAVEHW = ['low', 'middling', 'high'], WAVEF = [0.25, 0.45, 0.7], WAVEGO = ['a little way', 'a middling way', 'far'], WAVEV = 0.2, WAVEWD = 0.045, WAVEMAX = 32, WAKESTEP = 0.05;      /* a wave: how steep its ridge (the pointer presses at 2.2, a bubble's ground at 6), how far it goes before it has sunk away, how fast it spreads, half its ridge's width, all in the screen's own measure (its area is 1), so a wave goes as far across a phone as across a laptop; 32 at once; on a drag, a ripple every 0.05 */
   var SPELLR = [0.06, 0.12, 0.24], SPELLT = [1 / 6, 1 / 3, 1 / 2], SPELLW = ['a sixth', 'a third', 'half'], SPELLS = [5, 15, 45], SPELLMAX = 8;      /* a spell's width (a round bubble's, twice, four times), how far round the ring, how many seconds */
   var BANG = [60, 90, 120, 150];      /* 1/3 is the first choice, as before */
   var SHAREW = { '1/81': 'an eighty-first as many', '1/9': 'a ninth as many', '9/81': 'a ninth as many', '1/7': 'a seventh as many', '1/3': 'a third as many', '1/2': 'half as many', '2/3': 'two thirds as many', '3/4': 'three quarters as many', '4/5': 'four fifths as many', '5/6': 'five sixths as many', '6/7': 'six sevenths as many', '7/8': 'seven eighths as many', '8/9': 'eight ninths as many', '3/3': 'just as many', '3/2': 'one and a half times as many', '2/1': 'twice as many', '3/1': 'three times as many', '4/1': 'four times as many', '6/1': 'six times as many', '7/1': 'seven times as many', '8/1': 'eight times as many', '9/1': 'nine times as many', '81/9': 'nine times as many', '81/1': '81 times as many', '1/4': 'a quarter as many', '1/5': 'a fifth as many', '1/6': 'a sixth as many', '1/8': 'an eighth as many', '4/3': 'four thirds as many', '5/1': 'five times as many' };
@@ -684,13 +687,14 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   /* The legend and the sound options sit above the bar, however many lines the bar takes, and below the message line. */
   var barEl = document.getElementById('bar'), fitLast = '';
   function fitPanels() {
-    var r = barEl.getBoundingClientRect(), H = window.innerHeight, low = Math.round(hint.getBoundingClientRect().top), rm = Math.round(3 * (parseFloat(getComputedStyle(hint).lineHeight) || 23) + 0.9 * (parseFloat(getComputedStyle(hint).fontSize) || 16)), top = low + rm, b, mh, sh, i, p = [legend, panel], key, sheet = window.innerWidth <= 640 || H <= 500;      /* the message line's room, three lines of its plate, is counted from where it sits, below a notch */
+    var r = barEl.getBoundingClientRect(), H = window.innerHeight, low = Math.round(hint.getBoundingClientRect().top), rm = Math.round(3 * (parseFloat(getComputedStyle(hint).lineHeight) || 23) + 0.9 * (parseFloat(getComputedStyle(hint).fontSize) || 16)), top = low + rm, b, mh, sh, th, i, p = [legend, panel], key, sheet = window.innerWidth <= 640 || H <= 500;      /* the message line's room, three lines of its plate, is counted from where it sits, below a notch */
     if (sheet && H > 500) { top = Math.max(top, Math.round(0.34 * H)); }      /* on a phone held upright the sheet leaves the upper third of the picture in view */
     if (!r.height) { return; }
     b = Math.max(64, Math.round(H - r.top + 10)); mh = Math.max(0, Math.min(140, H - b), H - b - top);      /* at least 140 tall, rising over the message line, but not above the top of the screen (unless the bar leaves less room than the panel's own edges) */
-    sh = Math.max(0, Math.min(140, H - b), H - b - low - Math.max(84, rm)); key = b + '|' + mh + '|' + (sheet ? sh : '') + '|' + (panel ? 1 : 0);      /* the sound options' own height on a sheet, counted in what is looked at for a change */
+    sh = Math.max(0, Math.min(140, H - b), H - b - low - Math.max(84, rm)); th = sheet && !legend.hidden ? legend.querySelector('.tabs').offsetHeight || 0 : 0;      /* the sound options' own height on a sheet, and the tabs' on as many lines as they take */
+    key = b + '|' + mh + '|' + (sheet ? sh : '') + '|' + (panel ? 1 : 0) + '|' + th;      /* counted in what is looked at for a change */
     if (key === fitLast) { return; }
-    fitLast = key; legend.classList.toggle('short', sheet && mh < 120);
+    fitLast = key; legend.classList.toggle('short', sheet && mh < Math.max(120, th + 62));
     for (i = 0; i < p.length; i++) { if (p[i]) { p[i].style.bottom = b + 'px'; p[i].style.maxHeight = (p[i] === legend || !sheet ? mh : sh) + 'px'; } }      /* the sound options keep their own height */
   }
   function setLegend(open) {
@@ -768,6 +772,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     S.F = makeField(CAP, n, w / S.u, h / S.u, S.seed);
     if (keep) {
       S.F.room = keep.room; S.F.t = keep.t; S.F.tc = keep.tc; S.F.held = keep.held; S.F.k1 = keep.k1; S.F.k2 = keep.k2; S.F.k3 = keep.k3; S.F.mem = keep.mem; S.F.wander = keep.wander; S.F.smooth = keep.smooth; S.F.mix = keep.mix; S.F.wx = keep.wx; S.F.wx2 = keep.wx2; S.F.wx3 = keep.wx3; S.F.w3 = keep.w3; S.F.bub = keep.bub;
+      if (keep.wav) { S.F.wav = keep.wav; for (i = 0; i < keep.wav.length; i++) { keep.wav[i].x %= S.F.w; keep.wav[i].y %= S.F.h; } }      /* the waves out go on spreading, each from where it was sent */
       for (i = 0; i < CAP; i++) { S.F.x[i] = keep.x[i] % S.F.w; S.F.y[i] = keep.y[i] % S.F.h; S.F.px[i] = S.F.x[i]; S.F.py[i] = S.F.y[i]; S.F.vx[i] = keep.vx[i]; S.F.vy[i] = keep.vy[i]; }
     }
     S.zx = S.F.w / 2; S.zy = S.F.h / 2;
@@ -971,11 +976,21 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       ring(X, Y, R, 0.3, Math.ceil(k * b.secs) + ' s', undefined, S.ink);
       vx.globalAlpha = 0.75; vx.strokeStyle = S.ink; vx.lineWidth = Math.max(2, 2.6 * S.ps); vx.beginPath(); vx.arc(X, Y, R + 5 * S.ps, -1.5708, -1.5708 + 6.2832 * k); vx.stroke();
     }
-    for (i = 0; F.wav && i < F.wav.length; i++) {      /* a wave: a faint ring along its crest, fading as it sinks */
+    for (i = 0; F.wav && i < F.wav.length; i++) {      /* a wave: a clear ring along its crest, a halo of the ground's colour under a line of the ink's, fading as it sinks; a drag's ripples lighter */
       b = F.wav[i]; k = Math.max(0, 1 - (F.t - b.t0) / b.life); R = b.v * (F.t - b.t0) * kz;
       if (k <= 0 || R < 1) { continue; }
       X = S.cw / 2 + wrapd(b.x - S.cx, F.w) * kz; Y = S.ch / 2 + wrapd(b.y - S.cy, F.h) * kz;
-      ring(X, Y, R, 0.4 * k * (b.k / 6 > 1 ? 1 : 0.5 + 0.5 * b.k / 6), null, undefined, S.ink);
+      al = (b.wake ? 0.5 : 0.95) * Math.sqrt(k) * (b.k < WAVEK[1] ? 0.8 : 1);
+      q = 2 * R > Math.min(wp, hp);      /* wider than the space, it meets itself across the edges: each copy is cut to the part nearer it than any other, which is where its ridge presses */
+      for (ox = -1; ox <= 1; ox++) { for (oy = -1; oy <= 1; oy++) {
+        X1 = X + ox * wp; Y1 = Y + oy * hp;
+        if (X1 + R < 0 || X1 - R > S.cw || Y1 + R < 0 || Y1 - R > S.ch) { continue; }
+        if (q) { vx.save(); vx.beginPath(); vx.rect(X1 - wp / 2, Y1 - hp / 2, wp, hp); vx.clip(); }
+        vx.beginPath(); vx.arc(X1, Y1, R, 0, 6.2832);
+        vx.globalAlpha = 0.7 * al; vx.strokeStyle = S.bg; vx.lineWidth = Math.max(5, 6 * S.ps); vx.stroke();
+        vx.globalAlpha = al; vx.strokeStyle = S.ink; vx.lineWidth = Math.max(2.5, 2.6 * S.ps); vx.stroke();
+        if (q) { vx.restore(); }
+      } }
     }
     for (j = 0; j < S.pops.length; j++) {
       b = S.pops[j]; k = (now - b.t0) / 650;
@@ -1078,7 +1093,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   function waveAt(wx, wy, quiet) {
     var F = S.F, W = F.wav || (F.wav = []);
     if (W.length >= WAVEMAX) { W.shift(); }      /* the next sinks the oldest */
-    W.push({ x: wx, y: wy, t0: F.t, v: WAVEV, wd: WAVEWD, k: WAVEK[S.wheight], life: WAVEF[S.wfar] / WAVEV });
+    W.push({ x: wx, y: wy, t0: F.t, v: WAVEV, wd: WAVEWD, k: WAVEK[S.wheight], life: WAVEF[S.wfar] / WAVEV, wake: !!quiet });      /* a drag's ripples are drawn lighter, so their V shows through */
     if (!quiet) { say('A wave: it spreads from here and sinks as it goes. Drag, and ripples follow along the way.', 3000); }
   }
   function ageWaves() {
@@ -1750,7 +1765,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   /* Status marks: what is switched on, where the drift is in its cycle, and whether there is sound. */
   var tagsEl = document.getElementById('tags'), cycEl = document.getElementById('cycle'), cycDot = document.getElementById('cyc'), beatEl = document.getElementById('edge-bottom'), lastTags = null;
   function status() {
-    var F = S.F, t = [], i, li, joined, c;
+    var F = S.F, t = [], i, li, joined, c, e;
     if (SAVE.rec || CLIP) { i = Math.floor((Date.now() - SAVE.t0) / 1000); t.push('Recording, ' + Math.floor(i / 60) + ':' + (i % 60 < 10 ? '0' : '') + (i % 60)); }
     if (S.paused) { t.push('Paused'); }
     if (S.bubbles) { c = shapeOf(); t.push(c.n > 1 ? 'Touch drops ' + (c.word === 'angle' ? 'an angle of 9 at ' + c.deg + '\u00b0' : 'a ' + c.word + ' of ' + c.n) + ' holding ' + BUBN[S.bubk] : (c.round ? 'Touch drops a round bubble holding ' : 'Touch drops a bubble holding ') + BUBN[S.bubk]); }
@@ -1784,6 +1799,10 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
       for (i = 0; i < t.length; i++) { li = document.createElement('li'); li.textContent = t[i]; tagsEl.appendChild(li); }
     }
     pressBtn.setAttribute('aria-pressed', !S.bubbles && !S.spell && !S.wave && !S.drawIn ? 'true' : 'false'); drawBtn.setAttribute('aria-pressed', !S.bubbles && !S.spell && !S.wave && S.drawIn ? 'true' : 'false'); spellBtn.setAttribute('aria-pressed', S.spell ? 'true' : 'false'); waveBtn.setAttribute('aria-pressed', S.wave ? 'true' : 'false'); bubBtn.setAttribute('aria-pressed', S.bubbles ? 'true' : 'false');
+    if (waveBtn.parentNode.classList.contains('waving') !== !!S.wave) {      /* on a narrow bar Wave takes Spell's place while it is chosen, and a keyboard's place on the one goes to the other */
+      e = document.activeElement; waveBtn.parentNode.classList.toggle('waving', !!S.wave);
+      if (e === spellBtn && !spellBtn.getClientRects().length) { waveBtn.focus(); } else if (e === waveBtn && !waveBtn.getClientRects().length) { spellBtn.focus(); }
+    }
     pauseBtn.classList.toggle('paused', !!S.paused); pauseBtn.setAttribute('aria-label', S.paused ? 'Go' : 'Pause'); slowBtn.setAttribute('aria-pressed', S.slowmo ? 'true' : 'false'); kalBtn.setAttribute('aria-pressed', S.kal ? 'true' : 'false');
     popBtn.hidden = !S.bubbles; popBtn.setAttribute('aria-disabled', F.bub && F.bub.length ? 'false' : 'true'); bubWrap.hidden = !S.bubbles; topRow.hidden = !S.bubbles && recBtn.hidden;
      bubSel.value = String(S.bubk); bubVal.textContent = BUBN[S.bubk]; bubSel.setAttribute('aria-valuetext', BUBN[S.bubk]); shapeSel.value = String(S.shape); angleSel.value = String(S.angle); circSel.value = String(S.circ); groundSel.value = String(S.lean); document.getElementById('ssize').value = String(S.ssize); document.getElementById('sturn').value = String(S.sturn); document.getElementById('slast').value = String(S.slast); document.getElementById('wheight').value = String(S.wheight); document.getElementById('wfar').value = String(S.wfar); soundBtn.setAttribute('aria-pressed', A.on ? 'true' : 'false');
