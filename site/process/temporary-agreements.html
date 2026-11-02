@@ -270,7 +270,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     <li data-g="looking" class="r"><button type="button" class="nm" data-k="t" data-s="long" aria-pressed="false"><b>Trails</b><span class="k"><kbd>T</kbd></span></button><p class="d">Longer or shorter trails behind the dots.</p></li>
     <li data-g="sound" class="r"><h3>Sound</h3><p class="note">With sound on, each bubble sounds its share against a soft hum that stands for the whole. <button type="button" class="more" aria-expanded="false">More about this</button></p><div class="rest note" hidden>A share is a ratio, and so is a musical interval, so 2/1 sounds an octave above the whole, 3/2 a fifth above and 1/2 an octave below. A bubble is in tune while it holds its share and slides out of tune when it is too full or too empty. It wavers as its dots stray from going round together, swells once each time round, splits into three voices when it breaks, and plucks when it pops. With bloops, bells, plucked strings or a whoopee cushion it sounds as it goes round instead of holding its note. Shares below 1/7 and above 18/1 would be too low or too high to hear well, so they are moved by whole octaves until they can be.</div><button type="button" class="nm" data-k="m" data-s="sound" aria-pressed="false"><b>Sound</b><span class="k"><kbd>M</kbd></span></button><p class="d">On or off. Besides the bubbles, each clump of dots sounds a note of its colour, more quietly while there are bubbles, and the rush of air is the streaming between them.</p></li>
     <li data-g="sound" class="r"><div class="nm"><label for="o-bvox"><b>Bubble voice</b></label><select id="o-bvox"><option value="0">Reed</option><option value="1">Kazoo</option><option value="2">Harmonica</option><option value="3">Tuning fork</option><option value="4">Bloopy</option><option value="5">Jaw harp</option><option value="6">Glass</option><option value="7">Strings</option><option value="8">Choir</option><option value="9">Bells</option><option value="10">Plucked strings</option><option value="11">Whoopee cushion</option><option value="12">Theremin</option></select><span class="k"><kbd>N</kbd></span></div><p class="d">Step through thirteen. <button type="button" class="more" aria-expanded="false">More about this</button></p><div class="rest" hidden>Reed, kazoo, harmonica, tuning fork, jaw harp, glass, bowed strings, a choir and a theremin hold their notes. The tuning fork is struck again each time round, the jaw harp is twanged twice each time round, with a wah that follows its turning, and the theremin glides from pitch to pitch with a wide, slow vibrato. Bloops, bells, plucked strings and a whoopee cushion’s sputtering blats sound as each bubble goes round. Each keeps the bubble’s share as its pitch.</div></li>
-    <li data-g="sound" class="r"><div class="nm"><label for="o-kind"><b>Clumps</b></label><select id="o-kind"><option value="0">Organ</option><option value="1">Tuned air</option><option value="2">Quiet</option></select></div></li>
+    <li data-g="sound" class="r"><div class="nm"><label for="o-kind"><b>Clumps</b></label><select id="o-kind"><option value="0">Blown bottles</option><option value="1">Organ</option><option value="2">Tuned air</option><option value="3">Quiet</option></select></div><p class="d"><i>Blown bottles</i> (the first choice): each clump you can see, up to five, rings like a bottle blown across its top, a note of its colour. <button type="button" class="more" aria-expanded="false">More about this</button></p><div class="rest" hidden>A clump begins as a breath and rings clearer as its dots grow more alike, and when it scatters its note breaks back into breath. Bigger clumps sound lower. The colour picks the note from five that always sound well together, A, B, C sharp, E and F sharp, each a simple ratio to the whole’s A, as the bubbles’ shares are: 1/1, 9/8, 5/4, 3/2 and 5/3. Going round the ring of colours goes through the five and comes back to where it began. A note holds while its clump lasts, and when two clumps merge their notes slide into one, with a soft chime. <i>Organ</i> and <i>Tuned air</i> sound up to eight of the places where like dots are gathered most, each a tone of its colour, played or breathed; <i>Quiet</i> leaves the bubbles and the rush of air.</div></li>
     <li data-g="sound" class="r"><div class="nm"><label for="o-whole"><b>A soft hum for the whole, under the bubbles</b></label><input type="checkbox" id="o-whole" checked></div></li>
     <li data-g="sound" class="r"><div class="nm"><label for="o-echo"><b>Echo</b></label><input type="range" id="o-echo" min="0" max="100" step="1" value="50"><output id="o-echo-out" for="o-echo"></output></div></li>
     <li data-g="sound" class="r"><div class="nm"><label for="o-level"><b>Volume</b></label><input type="range" id="o-level" min="3" max="60" step="1" value="22"><output id="o-level-out" for="o-level"></output><span class="k"><kbd>-</kbd> and <kbd>=</kbd></span></div><p class="d">Quieter or louder.</p></li>
@@ -1222,8 +1222,8 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     var t = S.F.tc, c = Math.cos(drift1(S.F));
     return c > 0.45 ? 'each dot is drawn toward dots like itself, so they gather' : c < -0.25 ? 'each dot is drawn after dots unlike itself, so they stream' : 'between gathering and streaming';
   }
-  /* Sound. The bubbles sound their shares against a tone that stands for the whole. Each clump of dots sounds a note of its colour, and the
-     streaming between them is a rush of air. */
+  /* Sound. The bubbles sound their shares against a tone that stands for the whole. Each clump of dots sounds a note of its colour, as a blown
+     bottle (the first choice), an organ or tuned air, and the streaming between them is a rush of air. */
   var A = { ctx: null, on: false, kind: 0, level: 0.22, master: null, bus: null, voices: [], windGain: null, windFilt: null, count: 0, delay: null, bv: [], whole: null, wave: null, plucks: 0, pluckT: 0, wholeOn: true, bvoice: 0, waves: [], lastL: 0, strikes: 0, strikeT: 0 };
   var OPT = { echo: 50 };
   var WHOLE = 220;      /* the whole's tone, in Hz: every share is heard against it */
@@ -1290,13 +1290,17 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 900; lp2.Q.value = 0.3;
     A.windGain = c.createGain(); A.windGain.gain.value = 0;
     src.connect(A.windFilt); A.windFilt.connect(lp2); lp2.connect(A.windGain); A.windGain.connect(A.bus); src.start();
+    (function () { var re = new Float32Array(5), im = new Float32Array(5); im[1] = 1; im[2] = 0.16; im[3] = 0.07; im[4] = 0.02; A.botw = c.createPeriodicWave(re, im); }());      /* a bottle's tone: nearly pure, with a little of its octave and twelfth so that a small speaker carries its pitch */
+    A.bot = []; A.bt = { v: [], R: {}, n: 0, chimeT: -1, cand: [] };
+    for (i = 0; i < 5; i++) { A.bot.push(bottleVoice()); A.bt.v.push({ on: false, busy: 0, ev: '', pk: 0, x: 0, y: 0, area: 0, alike: 0, c: 0, ring: 0, born: 0, f: WHOLE, chime: false, n: 0, lost: 0, join: 0, with: 0, u: 0 }); }      /* the clumps as blown bottles: five voices */
     return true;
   }
-  function voiceKind() {        /* the clumps as an organ or as tuned air, and the echo */
+  function voiceKind() {        /* the clumps as blown bottles, an organ or tuned air, and the echo */
     var now, i, v;
     if (!A.ctx) { return; }
     now = A.ctx.currentTime;
-    for (i = 0; i < A.voices.length; i++) { v = A.voices[i]; v.og.gain.setTargetAtTime(A.kind === 0 ? 1 : 0, now, 0.2); v.ag.gain.setTargetAtTime(A.kind === 1 ? 22 : 0, now, 0.2); }
+    for (i = 0; i < A.voices.length; i++) { v = A.voices[i]; v.og.gain.setTargetAtTime(A.kind === 1 ? 1 : 0, now, 0.2); v.ag.gain.setTargetAtTime(A.kind === 2 ? 22 : 0, now, 0.2); }
+    if (A.kind !== 0) { for (i = 0; i < A.bot.length; i++) { A.bot[i].g.gain.setTargetAtTime(0, now, 0.2); A.bt.v[i].on = false; } }      /* the bottles fall quiet, and begin afresh when chosen again */
     A.delay.delayTime.setTargetAtTime(0.33, now, 0.2);
     A.wet.gain.setTargetAtTime(0.7 * OPT.echo / 100, now, 0.2); A.fb.gain.setTargetAtTime(0.2 + 0.36 * OPT.echo / 100, now, 0.2);
   }
@@ -1529,6 +1533,181 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     sp = cnt ? sp / cnt : 0;
     A.windGain.gain.setTargetAtTime(0.09 * Math.max(0, 1 - sum / 2.5) * Math.min(1, sp / 0.2) * (nb ? 0.6 : 1), now, 0.5);
     A.windFilt.frequency.setTargetAtTime(260 + 520 * Math.min(1, sp / 0.7), now, 0.5);
+    bottleSound(now, duck);
+  }
+  /* The clumps as blown bottles. The clumps you can see are read from the same fields as hear() reads, over each clump rather than at one
+     place, by where the strongest part of the colour (once round the ring, twice or three times) is strong. Taken from the strongest place
+     down, each place joins the clump beside it; where two meet, they are one clump if the place where they meet is at least half as strong
+     as the fainter one's peak, and two if it dips lower, as two clumps you can see with thinner ground between them. A clump big and tight
+     enough to see takes a voice, up to five, keeps it while it lasts, and lets it go only once it is fainter and smaller than it had to be
+     to start, so a note does not flicker. */
+  var BOT = { lo: 0.7, part: 0.5, start: 1, a0: 40, a1: 15, settle: 5, join: 8, lost: 3 };      /* the strength a clump's places need; how strong, against the fainter peak, the place where two meet must be for them to be one; the peak and the size (in places) a clump needs to start a note, and the size it keeps its voice down to; in readings (ten a second), how long a clump is seen before its note begins, how long two notes stay in one clump before they merge, and how long a note holds on with its clump not found */
+  var BOTP = [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3];      /* the five notes, as ratios to the whole's A: A, B, C sharp, E and F sharp, which all sound well together */
+  function clumpsSeen(F, R) {
+    var gw = F.gw, gh = F.gh, g = gw * gh, three = F.k3 > 0, sm = F.smooth, cw = F.w / gw, ch = F.h / gh, hw = F.w / 2, hh = F.h / 2, C1 = F.C1, S1 = F.S1, C2 = F.C2, S2 = F.S2, C3 = F.C3, S3 = F.S3;
+    var K, D1, D2, lab, ord, up, pk, at, nb, out = [], k, m = 0, nr = 0, q, n, i, j, r, a, b, c, ra, rb, px, py, a1, a2, a3, ph;
+    if (!R.K || R.K.length !== g) { R.K = new Float32Array(g); R.D1 = new Float32Array(g); R.D2 = new Float32Array(g); R.tmp = new Float32Array(g); R.lab = new Int32Array(g); R.ord = new Int32Array(g); R.up = new Int32Array(g + 1); R.pk = new Int32Array(g + 1); R.at = new Int32Array(g + 1); R.nb = new Int32Array(4); }
+    K = R.K; D1 = R.D1; D2 = R.D2; lab = R.lab; ord = R.ord; up = R.up; pk = R.pk; at = R.at; nb = R.nb;
+    D1.set(F.W); blur(D1, R.tmp, gw, gh, sm ? 3 : 5, sm ? 8 : 3); D2.set(F.W); blur(D2, R.tmp, gw, gh, sm ? 2 : 3, sm ? 6 : 3);      /* the crowd, averaged over the same patch as each part of the colour */
+    for (k = 0; k < g; k++) { a = C1[k] * C1[k] + S1[k] * S1[k]; b = C2[k] * C2[k] + S2[k] * S2[k]; c = three ? C3[k] * C3[k] + S3[k] * S3[k] : 0; K[k] = Math.sqrt(Math.max(a, b, c)); lab[k] = 0; if (K[k] > BOT.lo) { ord[m++] = k; } }
+    ord.subarray(0, m).sort(function (x, y) { return K[y] - K[x]; });
+    function root(x) { while (up[x] !== x) { up[x] = up[up[x]]; x = up[x]; } return x; }
+    for (q = 0; q < m; q++) {
+      k = ord[q]; i = k % gw; j = (k - i) / gw; ra = 0;
+      nb[0] = lab[j * gw + (i + 1) % gw]; nb[1] = lab[j * gw + (i + gw - 1) % gw]; nb[2] = lab[((j + 1) % gh) * gw + i]; nb[3] = lab[((j + gh - 1) % gh) * gw + i];
+      for (n = 0; n < 4; n++) {
+        if (!nb[n]) { continue; }
+        rb = root(nb[n]);
+        if (!ra) { ra = rb; } else if (rb !== ra) {
+          if (K[k] >= BOT.part * Math.min(K[pk[ra]], K[pk[rb]])) { if (K[pk[rb]] > K[pk[ra]]) { up[ra] = rb; ra = rb; } else { up[rb] = ra; } }      /* where they meet is strong enough: one clump */
+          else if (K[pk[rb]] > K[pk[ra]]) { ra = rb; }      /* two: the place goes with the stronger */
+        }
+      }
+      if (!ra) { nr += 1; ra = nr; up[nr] = nr; pk[nr] = k; at[nr] = 0; }
+      lab[k] = ra;
+    }
+    for (q = 0; q < m; q++) {
+      k = ord[q]; ra = root(lab[k]);
+      if (!at[ra]) { r = { id: out.length + 1, area: 0, peak: K[pk[ra]], pk: pk[ra], c1: 0, s1: 0, c2: 0, s2: 0, c3: 0, s3: 0, d1: 0, d2: 0, ex: 0, ey: 0, w: 0 }; out.push(r); at[ra] = r.id; }
+      r = out[at[ra] - 1]; lab[k] = r.id; r.area += 1;
+      r.c1 += C1[k]; r.s1 += S1[k]; r.c2 += C2[k]; r.s2 += S2[k]; if (three) { r.c3 += C3[k]; r.s3 += S3[k]; } r.d1 += D1[k]; r.d2 += D2[k];
+      a = (k % gw - r.pk % gw) * cw; b = ((k / gw | 0) - (r.pk / gw | 0)) * ch;      /* where it is: its places, the stronger counting more, about its peak */
+      if (a > hw) { a -= F.w; } else if (a < -hw) { a += F.w; }
+      if (b > hh) { b -= F.h; } else if (b < -hh) { b += F.h; }
+      r.ex += K[k] * a; r.ey += K[k] * b; r.w += K[k];
+    }
+    for (q = 0; q < out.length; q++) {
+      r = out[q]; px = (r.pk % gw + 0.5) * cw; py = ((r.pk / gw | 0) + 0.5) * ch;
+      r.x = ((px + r.ex / r.w) % F.w + F.w) % F.w; r.y = ((py + r.ey / r.w) % F.h + F.h) % F.h;
+      a1 = Math.sqrt(r.c1 * r.c1 + r.s1 * r.s1) / r.d1; a2 = Math.sqrt(r.c2 * r.c2 + r.s2 * r.s2) / r.d2; a3 = three ? Math.sqrt(r.c3 * r.c3 + r.s3 * r.s3) / r.d2 : 0;
+      ph = a1 >= a2 && a1 >= a3 ? Math.atan2(r.s1, r.c1) : a2 >= a3 ? Math.atan2(r.s2, r.c2) : Math.atan2(r.s3, r.c3);
+      r.alike = Math.max(a1, a2, a3); r.u = (ph / 6.283185307 + 1) % 1;      /* how alike its dots are, from 0 to 1, and where its colour is on the ring */
+    }
+    return out;
+  }
+  function bottleNote(u, area) {        /* its colour picks one of the five notes, and its size the octave: one twice as wide sounds nearly an octave lower */
+    var f = WHOLE * BOTP[Math.round(u * 5) % 5], t = Math.max(165, Math.min(990, 440 * Math.pow(300 / Math.max(1, area), 0.45)));
+    while (f < t / 1.41421356) { f *= 2; }
+    while (f > t * 1.41421356) { f /= 2; }
+    return f;
+  }
+  function climb(K, gw, gh, k) {        /* from a place toward the top of the clump it is on, eight steps at most */
+    var s, i, j, dx, dy, q, bk;
+    for (s = 0; s < 8; s++) {
+      i = k % gw; j = (k - i) / gw; bk = k;
+      for (dy = -1; dy <= 1; dy++) { for (dx = -1; dx <= 1; dx++) { q = ((j + dy + gh) % gh) * gw + (i + dx + gw) % gw; if (K[q] > K[bk]) { bk = q; } } }
+      if (bk === k) { break; }
+      k = bk;
+    }
+    return k;
+  }
+  function bottleTrack(cl, R, F, now, T) {        /* which clump each voice follows, and what each does now (ev): start, hold, merge, absorbed or scatter */
+    var vs = T.v, K = R.K, lab = R.lab, gw = F.gw, gh = F.gh, hw = F.w / 2, hh = F.h / 2, by = {}, mine = {}, wait = [], cand = [], lost = [], got, i, j, k, n, v, b, r, id, f, d, bd, dx, dy;
+    for (i = 0; i < vs.length; i++) {
+      v = vs[i]; v.ev = '';
+      if (!v.on) { continue; }
+      k = climb(K, gw, gh, v.pk); id = K[k] > BOT.lo ? lab[k] : 0;      /* each follows the top of its own clump, which moves as the clump does */
+      if (id && cl[id - 1].area < BOT.a1) { id = 0; }
+      if (!id) { lost.push(i); continue; }
+      v.lost = 0; v.pk = k;
+      if (!by[id]) { by[id] = []; }
+      by[id].push(i);
+    }
+    for (j = 0; j < lost.length; j++) {        /* not found where it was: it goes over to the nearest clump close by that has no note, or holds where it was, and has scattered if none is found within a few readings */
+      v = vs[lost[j]]; id = 0; bd = 0.0225;
+      for (n = 0; n < cl.length; n++) {
+        r = cl[n]; if (by[r.id] || r.area < BOT.a1) { continue; }
+        dx = Math.abs(r.x - v.x); if (dx > hw) { dx = F.w - dx; } dy = Math.abs(r.y - v.y); if (dy > hh) { dy = F.h - dy; } d = dx * dx + dy * dy;
+        if (d < bd) { bd = d; id = r.id; }
+      }
+      if (id) { v.lost = 0; v.pk = cl[id - 1].pk; by[id] = [lost[j]]; continue; }
+      v.lost += 1; if (v.lost >= BOT.lost) { v.on = false; v.busy = now + 1.5; v.ev = 'scatter'; } else { v.ev = 'hold'; }
+    }
+    for (id in by) {
+      if (!by.hasOwnProperty(id)) { continue; }
+      k = by[id]; r = cl[id - 1]; mine[id] = true;
+      k.sort(function (x, y) { return vs[y].area - vs[x].area; });
+      b = vs[k[0]]; b.ev = 'hold'; b.join = 0; got = [];
+      for (j = 1; j < k.length; j++) {        /* another note in the same clump: they have merged once they share its top, or have stayed in it together most of a second */
+        v = vs[k[j]]; v.join = v.with === b.n ? v.join + 1 : 1; v.with = b.n; v.ev = 'hold'; v.x = (v.pk % gw + 0.5) * F.w / gw; v.y = ((v.pk / gw | 0) + 0.5) * F.h / gh;
+        if (v.pk === b.pk || v.join >= BOT.join) { got.push(v); }
+      }
+      if (got.length) {        /* the biggest keeps its voice and its note, at the octave of the size they make now; each other slides into that note, or the same an octave away, whichever is nearer; and they chime as they join */
+        f = bottleNote(b.u, r.area);
+        for (j = 0; j < got.length; j++) { v = got[j]; v.on = false; v.busy = now + 2.5; v.ev = 'absorbed'; v.f = f * Math.pow(2, Math.round(Math.log(v.f / f) / Math.LN2)); }
+        b.ev = 'merge'; b.f = f; b.chime = now - T.chimeT > 0.25; if (b.chime) { T.chimeT = now; }
+      }
+      if (k.length === got.length + 1) { b.pk = r.pk; b.x = r.x; b.y = r.y; }      /* alone in its clump, it follows the clump's top and is heard from its middle */
+      else { b.x = (b.pk % gw + 0.5) * F.w / gw; b.y = ((b.pk / gw | 0) + 0.5) * F.h / gh; }
+      b.area = r.area; b.alike = r.alike; b.ring = Math.min(1, (now - b.born) / 1.2);
+      b.c = Math.max(0, Math.min(1, (r.alike - 0.5) / 0.25)) * b.ring;      /* how clearly it rings: from breath, as its dots grow more alike, and only after it has begun as a breath */
+    }
+    for (j = 0; j < cl.length; j++) {        /* a clump not yet heard, big and tight enough, is seen for half a second before its note begins */
+      r = cl[j]; if (mine[r.id] || r.peak < BOT.start || r.area < BOT.a0) { continue; }
+      for (i = 0, n = 1; i < T.cand.length; i++) { k = climb(K, gw, gh, T.cand[i].pk); if (k >= 0 && lab[k] === r.id) { n = T.cand[i].n + 1; break; } }
+      cand.push({ pk: r.pk, n: n }); if (n >= BOT.settle) { wait.push(r); }
+    }
+    T.cand = cand;
+    wait.sort(function (x, y) { return y.area - x.area; });
+    for (j = 0, i = 0; j < wait.length; j++) {        /* the biggest first take the voices that are free */
+      while (i < vs.length && (vs[i].on || vs[i].busy > now)) { i++; }
+      if (i >= vs.length) { break; }
+      r = wait[j]; v = vs[i]; T.n += 1;
+      v.on = true; v.ev = 'start'; v.n = T.n; v.born = now; v.ring = 0; v.c = 0; v.lost = 0; v.join = 0; v.with = 0; v.pk = r.pk; v.x = r.x; v.y = r.y; v.area = r.area; v.alike = r.alike; v.u = r.u; v.f = bottleNote(r.u, r.area);
+    }
+  }
+  function bottleVoice() {        /* a blown bottle: a nearly pure tone that wavers a little with the breath, the breath through the bottle at its note, and the hiss of air across its lip */
+    var c = A.ctx, v = { o: c.createOscillator(), fm: c.createGain(), tg: c.createGain(), n: c.createBufferSource(), bp: c.createBiquadFilter(), bg: c.createGain(), ep: c.createBiquadFilter(), eg: c.createGain(),
+      w1: c.createOscillator(), w1d: c.createGain(), w2: c.createOscillator(), w2d: c.createGain(), w3: c.createOscillator(), w3d: c.createGain(), g: c.createGain(), pan: c.createStereoPanner ? c.createStereoPanner() : null };
+    v.o.setPeriodicWave(A.botw); v.o.frequency.value = WHOLE; v.tg.gain.value = 0; v.o.connect(v.fm); v.fm.connect(v.tg); v.tg.connect(v.g);
+    v.w1.frequency.value = 3.7 + Math.random(); v.w1d.gain.value = 0.07; v.w2.frequency.value = 6.1 + Math.random(); v.w2d.gain.value = 0.05;      /* the wavering, at two rates that do not keep step */
+    v.w1.connect(v.w1d); v.w1d.connect(v.fm.gain); v.w2.connect(v.w2d); v.w2d.connect(v.fm.gain);
+    v.w3.frequency.value = 0.6 + 0.4 * Math.random(); v.w3d.gain.value = 3; v.w3.connect(v.w3d); v.w3d.connect(v.o.detune);      /* and a few cents of drift in pitch */
+    v.n.buffer = A.noise; v.n.loop = true;
+    v.bp.type = 'bandpass'; v.bp.frequency.value = WHOLE; v.bp.Q.value = 3; v.bg.gain.value = 0; v.n.connect(v.bp); v.bp.connect(v.bg); v.bg.connect(v.g);
+    v.ep.type = 'bandpass'; v.ep.frequency.value = 1800; v.ep.Q.value = 0.7; v.eg.gain.value = 0; v.n.connect(v.ep); v.ep.connect(v.eg); v.eg.connect(v.g);
+    v.g.gain.value = 0;
+    if (v.pan) { v.g.connect(v.pan); v.pan.connect(A.bus); } else { v.g.connect(A.bus); }
+    v.o.start(); v.w1.start(); v.w2.start(); v.w3.start(); v.n.start(0, Math.random() * 1.9);
+    return v;
+  }
+  function breath(f, q, lv) { return lv * 0.7071 * Math.sqrt(3 * q * A.ctx.sampleRate / (Math.PI * f)); }      /* the gain that makes the air through a filter at f, as sharp as q, as strong as a tone of strength lv */
+  function chime(f, lv, pan, now) {        /* a soft chime as two clumps join: a small glass bell an octave above their note */
+    var c = A.ctx, out = c.createGain(), p = null, P = [[2, 1, 1.6], [5.4, 0.25, 0.5]], k, o, g, first = null;
+    out.gain.value = lv;
+    if (c.createStereoPanner) { p = c.createStereoPanner(); p.pan.value = pan; out.connect(p); p.connect(A.bus); } else { out.connect(A.bus); }
+    for (k = 0; k < P.length; k++) {
+      if (f * P[k][0] > 9000) { continue; }
+      o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f * P[k][0]; g = c.createGain();
+      g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(P[k][1], now + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, now + P[k][2]);
+      o.connect(g); g.connect(out); o.start(now); o.stop(now + P[k][2] + 0.05); if (!first) { first = o; }
+    }
+    if (first) { first.onended = function () { try { out.disconnect(); if (p) { p.disconnect(); } } catch (e) { /* gone already */ } }; }
+  }
+  function bottleSound(now, duck) {
+    var F = S.F, T = A.bt, i, v, x, c, lv, ex, ey, d, pn, q, hw = F.w / 2, hh = F.h / 2;
+    if (A.kind !== 0) { return; }
+    bottleTrack(clumpsSeen(F, T.R), T.R, F, now, T);
+    for (i = 0; i < T.v.length; i++) {
+      v = T.v[i]; x = A.bot[i];
+      if (!v.ev) { continue; }
+      if (v.ev === 'scatter') {        /* its note breaks back into breath, and fades */
+        x.tg.gain.setTargetAtTime(0, now, 0.05); x.bp.Q.setTargetAtTime(2, now, 0.05); x.bg.gain.setTargetAtTime(breath(v.f, 2, 1.1), now, 0.03); x.eg.gain.setTargetAtTime(0.4 * breath(1800, 0.7, 1), now, 0.03); x.g.gain.setTargetAtTime(0, now, 0.35);
+        continue;
+      }
+      if (v.ev === 'start') { x.tg.gain.setTargetAtTime(0, now, 0.01); x.o.frequency.setValueAtTime(v.f, now + 0.05); x.bp.frequency.setValueAtTime(v.f, now + 0.05); }      /* any last of what it sounded before is let go first */
+      else if (v.ev === 'merge' || v.ev === 'absorbed') { x.o.frequency.setTargetAtTime(v.f, now, 0.35); x.bp.frequency.setTargetAtTime(v.f, now, 0.35); }      /* the notes slide into one */
+      if (v.ev === 'absorbed') { x.g.gain.setTargetAtTime(0, now, 0.6); continue; }
+      ex = v.x - S.cx; if (ex > hw) { ex -= F.w; } else if (ex < -hw) { ex += F.w; }
+      ey = v.y - S.cy; if (ey > hh) { ey -= F.h; } else if (ey < -hh) { ey += F.h; }
+      lv = 0.09 * loudFor(v.f) * Math.max(0.5, Math.min(1.25, Math.sqrt(v.area / 400))) * (0.55 + 0.45 * v.c) * duck;      /* bigger clumps a little louder, and a breath softer than a clear note; as loud as the organ while gathering */
+      if (S.zoom > 1) { d = Math.sqrt(ex * ex + ey * ey) / (hw / S.zoom); lv *= Math.max(0.1, 1 - 0.6 * Math.max(0, d - 0.6)); }      /* zoomed in, what is out of view is fainter */
+      c = v.c; q = 3 + 9 * c;      /* the breath narrows to the note as it rings clearer */
+      x.g.gain.setTargetAtTime(lv, now, 0.25);
+      x.tg.gain.setTargetAtTime(Math.sqrt(c), now, 0.15); x.bp.Q.setTargetAtTime(q, now, 0.15); x.bg.gain.setTargetAtTime(breath(v.f, q, 0.9 - 0.75 * c), now, 0.15); x.eg.gain.setTargetAtTime((0.36 - 0.3 * c) * breath(1800, 0.7, 1), now, 0.15);
+      pn = Math.max(-0.85, Math.min(0.85, ex / hw * S.zoom)); if (x.pan) { x.pan.pan.setTargetAtTime(pn, now, 0.15); }
+      if (v.ev === 'merge' && v.chime) { chime(v.f, 0.45 * lv, pn, now); }
+    }
   }
   /* Saving: a still of the picture, or a clip of it moving. The viewer is asked before anything is saved. */
   var SAVE = { dl: null, rec: null, chunks: [], t0: 0, timer: 0, kill: 0, type: '', ext: '', dest: null, stream: null, cv: null, cx: null, busy: false, err: '', watch: 0,
@@ -1816,7 +1995,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     if (S.nYou && F.n !== S.n0) { add(num(F.n) + ' dots', function () { crowd(S.n0); S.nYou = false; say(num(S.F.n) + ' dots.', 1800); }); }      /* a count chosen here; not the crowd thinned by itself */
     if (S.roomi !== 2) { add('Room: ' + ROOMN[S.roomi].toLowerCase(), function () { while (S.roomi !== 2) { roomStep(S.roomi < 2 ? 1 : -1); } }); }
     if (A.on && A.bvoice) { add('Bubble voice: ' + BVOX[A.bvoice].name.toLowerCase(), function () { setBubbleVoice(0); syncPanel(); say(BVOX[0].say, 3200); }); }
-    if (A.on && A.kind) { add(A.kind === 1 ? 'Clumps as air' : 'Clumps quiet', function () { pick('o-kind', '0'); }); }
+    if (A.on && A.kind) { add(A.kind === 1 ? 'Clumps as an organ' : A.kind === 2 ? 'Clumps as air' : 'Clumps quiet', function () { pick('o-kind', '0'); }); }
     if (A.on && !A.wholeOn) { add('No hum for the whole', function () { var c = el('o-whole'); c.checked = true; c.dispatchEvent(new Event('change')); }); }
     return t;
   }
@@ -2023,7 +2202,8 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
   }
   el('o-whole').addEventListener('change', function () { A.wholeOn = el('o-whole').checked; say(A.wholeOn ? 'The soft hum for the whole is on: each bubble\u2019s share is heard against it.' : 'The hum for the whole is off. The bubbles keep their pitches.', 2600); });
   el('o-bvox').addEventListener('change', function () { setBubbleVoice(+el('o-bvox').value); status(); });
-  el('o-kind').addEventListener('change', function () { A.kind = +el('o-kind').value; voiceKind(); status(); });
+  var KSAY = ['Clumps as blown bottles: each clump you can see rings a note of its colour, a breath at first, clearer as its dots grow alike.', 'Clumps as an organ: up to eight places where like dots gather most, each a tone of its colour.', 'Clumps as tuned air: the organ’s tones, breathed.', 'Clumps quiet: the bubbles and the rush of air go on.'];
+  el('o-kind').addEventListener('change', function () { A.kind = +el('o-kind').value; voiceKind(); status(); say(KSAY[A.kind], 3200); });
   el('o-echo').addEventListener('input', function () { OPT.echo = +el('o-echo').value; voiceKind(); syncPanel(); });
   el('o-level').addEventListener('input', function () { A.level = +el('o-level').value / 100; audioLevel(); syncPanel(); });
   syncPanel();
@@ -2164,7 +2344,7 @@ kbd { font: 0.82rem ui-monospace, Menlo, Consolas, monospace; border: 1px solid 
     else if (k === 'm' || k === 'M') {
       soundOn(!A.on);
       if (!A.ctx) { return; }
-      say(A.on ? 'Sound on: each bubble sounds its share' + (A.kind === 2 ? '.' : ', each clump its colour.') : 'Sound off.', A.on ? 3000 : 1500);
+      say(A.on ? 'Sound on: each bubble sounds its share' + (A.kind === 3 ? '.' : ', each clump its colour.') : 'Sound off.', A.on ? 3000 : 1500);
     }
     else if (k === 'c' || k === 'C') {
       S.kind = ((S.kind || 0) + 1) % 3;
